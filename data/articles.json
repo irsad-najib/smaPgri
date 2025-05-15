@@ -1,0 +1,13 @@
+{
+  "articles": [
+    {
+      "id": 1747226696058,
+      "title": "dsad",
+      "author": "dsad",
+      "category": "pengumuman",
+      "content": "<p>sada</p>\r\n<p>dsada</p>\r\n<p><img src=\"blob:http://localhost:3000/0082a820-b721-44a3-8276-43633d447f69\"></p>\r\n<p>dasdad</p>",
+      "imageUrl": "/uploads/1747226696055-1.1.png",
+      "createdAt": "2025-05-14T12:44:56.058Z"
+    }
+  ]
+}

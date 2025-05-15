@@ -6,6 +6,12 @@ import Navbar from './component/navbar.js'
 import Footer from './component/footer.js';
 import { FeedbackForm } from './component/FeedbackFrom.js';
 import emailjs from '@emailjs/browser';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Navigation, Pagination, Autoplay } from 'swiper/modules';
+
+import 'swiper/css';
+import 'swiper/css/navigation';
+import 'swiper/css/pagination';
 
 export default function HomePage() {
   const GoogleMapEmbed = () => (
@@ -31,6 +37,20 @@ export default function HomePage() {
     // Inisialisasi EmailJS
     emailjs.init(emailjsConfig.publicKey);
   }, []);
+
+  const image2 = [
+    { id: 1, src: "/ekstrakurikuler/Futsal.jpg", name: "Futsal" },
+    { id: 2, src: "/ekstrakurikuler/Pramuka.jpg", name: "Pramuka" },
+    { id: 3, src: "/ekstrakurikuler/Komputer.jpg", name: "Komputer" },
+    { id: 4, src: "/ekstrakurikuler/seni-musik.jpg", name: "Seni Musik" },
+    { id: 5, src: "/ekstrakurikuler/stir-mobil.jpg", name: "Stir Mobil" },
+    { id: 6, src: "/ekstrakurikuler/Tata Boga.jpg", name: "Tata Boga" },
+  ]
+  const image1 = [
+    { id: 1, src: "/fasilitas/lab_komputer.jpg", name: "Laboratorium Komputer" },
+    { id: 2, src: "/fasilitas/Laboratorium-IPA.jpg", name: "Laboratorium IPA" },
+    { id: 3, src: "/fasilitas/Perpustakaan.jpg", name: "Perpustakaan" },
+  ];
   return (
     <>
       <Navbar />
@@ -43,29 +63,33 @@ export default function HomePage() {
           className=" h-auto lg:h-screen w-full opacity-80"
           priority
         />
-        <div className='absolute top-0 left-0 w-full h-full items-center justify-center flex gap-1'>
-          <Image
-            src="/logo_yayasan.png"
-            alt="Picture of the author"
-            width={10000}
-            height={10000}
-            className=" h-auto w-[9%]"
-            priority
-          />
-          <Image
-            src="/logo_sekolah.png"
-            alt="Picture of the author"
-            width={10000}
-            height={10000}
-            className="h-auto w-[8%]"
-            priority
-          />
-          <h1 className="text-[4vw] font-bold text-white top-1/2">
-            SMA PGRI 1 GOMBONG
-          </h1>
+        <div className='absolute top-0 left-0 w-full h-full flex flex-col items-center justify-center gap-4 '>
+          <div className="flex items-center gap-2 justify-center">
+
+            <Image
+              src="/logo_yayasan.png"
+              alt="Picture of the author"
+              width={10000}
+              height={10000}
+              className=" h-auto w-[9%]"
+              priority
+            />
+            <Image
+              src="/logo_sekolah.png"
+              alt="Picture of the author"
+              width={10000}
+              height={10000}
+              className="h-auto w-[8%]"
+              priority
+            />
+            <h1 className="text-[4vw] font-bold text-white top-1/2 text-center">
+              SMA PGRI 1 GOMBONG
+            </h1>
+          </div>
+          <p className="text-[2vw] font-bold text-white top-1/2 text-center">Terakreditasi A (Unggul)</p>
         </div>
       </section >
-      <section id="profile" className="bg-amber-50 p-[8%] lg:p-5 text-black flex flex-col md:flex-row gap-4">
+      <section id="profile" className="bg-amber-50 p-[8%] lg:p-5 text-black flex flex-col md:flex-row gap-4 scroll-mt-20">
         <Image
           src="/logo_sekolah.png"
           alt="Picture of the author"
@@ -76,16 +100,16 @@ export default function HomePage() {
         />
         <div className="flex flex-col justify-center text-black">
           <h1 className="text-center text-2xl font-bold">Profil Sekolah</h1>
-          <p className="text-center text-lg mt-2">
-            lorem ipsum dolor sit amet, consectetur adipiscing elit.
-            Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-            Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
-            Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
-            Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+
+          <p className=" text-[3vw] mx-[10%] my-[5%] md:text-[2vw] lg:text-xl lg:p-4 text-justify mt-2">
+            SMA PGRI 1 Gombong merupakan sekolah menengah atas yang berdiri sejak tahun 1981 oleh Drs. Slamet PA dan H. Sukotjo BcHk. Awalnya menumpang di SMA Negeri 1 Gombong, kemudian pindah ke KWN Wonokriyo pada tahun 1985. Pada tahun 1990, SMA PGRI 1 Gombong berhasil membangun gedung sendiri di atas lahan seluas 5.679 m² dan saat ini beralamat di Jalan Potongan No. 292, Gombong.
+            <br /><br />
+            Dengan akreditasi A (Unggul), sekolah ini telah melahirkan banyak alumni sukses di bidang militer, industri, dan luar negeri. Kepala sekolah pertama adalah Manginar, SM.BA yang menjabat dari tahun 1981 hingga 2006. SMA PGRI 1 Gombong berkomitmen mencetak generasi yang berkarakter Pancasila, unggul, terampil, dan berbudaya.
           </p>
+
         </div>
       </section>
-      <section id="VISI-MISI" className="bg-amber-50 p-[8%] lg:p-5 text-black">
+      <section id="VISI MISI" className="bg-amber-50 p-[8%] lg:p-5 text-black scroll-mt-20">
         <h1 className="flex text-[8vw] font-bold my-[4%] md:my-5 justify-center text-center md:text-[5vw] lg:text-4xl">Visi Misi dan Tujuan sekolah</h1>
         <div className="container mx-auto px-[4%] py-[8%] lg:p-4">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -154,26 +178,171 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-      <section id="Sejarah" className="bg-amber-50 mx-auto px-4 py-8 flex flex-col md:flex-row gap-4">
-        <Image
+      <section id="ekstrakurikuler" className="bg-amber-50 mx-auto px-4 py-8 flex flex-col gap-4 scroll-mt-20">
+        {/* <Image
           src="/logo_sekolah.png"
           alt="Picture of the author"
           width={10000}
           height={10000}
           className="h-auto w-1/2 mx-auto"
           priority
-        />
-        <div className="flex flex-col justify-center text-black">
-          <h1 className="text-center text-2xl font-bold">Sejarah</h1>
-          <p className="text-center text-lg mt-2">
-            lorem ipsum dolor sit amet, consectetur adipiscing elit.
-            Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-            Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
-            Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
-            Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-          </p>
+          /> */}
+        <h1 className="text-center text-2xl font-bold text-black">Fasilitas dan Extrakurikuler</h1>
+        <div className="flex flex-col justify-center items-center md:flex-row text-black">
+          <div className="relative w-full mx-auto group">
+            <h1 className="text-center text-2xl font-bold my-4">Fasilitas</h1>
+            <Swiper
+              modules={[Navigation, Pagination, Autoplay]}
+              spaceBetween={30}
+              slidesPerView={1}
+              navigation={{
+                nextEl: '.swiper-button-next',
+                prevEl: '.swiper-button-prev',
+              }}
+              pagination={{
+                clickable: true,
+                el: '.swiper-pagination',
+                bulletClass: 'swiper-pagination-bullet',
+                bulletActiveClass: 'swiper-pagination-bullet-active',
+                renderBullet: function (index, className) {
+                  return `<span class="${className}"></span>`;
+                },
+              }}
+              autoplay={{
+                delay: 3000,
+                disableOnInteraction: false,
+              }}
+              loop={true}
+              className="w-64 h-auto rounded-lg"
+            >
+              {image1.map((image1) => (
+                <SwiperSlide key={image1.id}>
+                  <img
+                    src={image1.src}
+                    alt={`Slide ${image1.id}`}
+                    className='w-64 h-64 object-cover'
+                  />
+                  <h1 className="text-center text-2xl font-bold">{image1.name}</h1>
+                </SwiperSlide>
+              ))}
+
+              {/* Custom Navigation Buttons */}
+              <button className="swiper-button-prev !hidden group-hover:!flex !w-10 !h-10 !bg-black/30 hover:!bg-black/50 !backdrop-blur-sm rounded-full !text-white transition-all duration-300">
+                <span className="sr-only">Previous</span>
+              </button>
+              <button className="swiper-button-next !hidden group-hover:!flex !w-10 !h-10 !bg-black/30 hover:!bg-black/50 !backdrop-blur-sm rounded-full !text-white transition-all duration-300">
+                <span className="sr-only">Next</span>
+              </button>
+
+              {/* Custom Pagination Dots */}
+              <div className="swiper-pagination !bottom-4"></div>
+            </Swiper>
+          </div>
+          <div className="relative w-full mx-auto group">
+            <h1 className="text-center text-2xl font-bold my-4">Ekstrakurikuler</h1>
+            <Swiper
+              modules={[Navigation, Pagination, Autoplay]}
+              spaceBetween={30}
+              slidesPerView={1}
+              navigation={{
+                nextEl: '.swiper-button-next',
+                prevEl: '.swiper-button-prev',
+              }}
+              pagination={{
+                clickable: true,
+                el: '.swiper-pagination',
+                bulletClass: 'swiper-pagination-bullet',
+                bulletActiveClass: 'swiper-pagination-bullet-active',
+                renderBullet: function (index, className) {
+                  return `<span class="${className}"></span>`;
+                },
+              }}
+              autoplay={{
+                delay: 3000,
+                disableOnInteraction: false,
+              }}
+              loop={true}
+              className="w-64 h-auto rounded-lg"
+            >
+              {image2.map((image2) => (
+                <SwiperSlide key={image2.id}>
+                  <img
+                    src={image2.src}
+                    alt={`Slide ${image2.id}`}
+                    className='w-64 h-64 object-cover'
+                  />
+                  <h1 className="text-center text-2xl font-bold">{image2.name}</h1>
+                </SwiperSlide>
+              ))}
+
+              {/* Custom Navigation Buttons */}
+              <button className="swiper-button-prev !hidden group-hover:!flex !w-10 !h-10 !bg-black/30 hover:!bg-black/50 !backdrop-blur-sm rounded-full !text-white transition-all duration-300">
+                <span className="sr-only">Previous</span>
+              </button>
+              <button className="swiper-button-next !hidden group-hover:!flex !w-10 !h-10 !bg-black/30 hover:!bg-black/50 !backdrop-blur-sm rounded-full !text-white transition-all duration-300">
+                <span className="sr-only">Next</span>
+              </button>
+
+              {/* Custom Pagination Dots */}
+              <div className="swiper-pagination !bottom-4"></div>
+            </Swiper>
+          </div>
         </div>
       </section>
+      <section id="Testimoni" className="p-[10%] lg:p-5 bg-amber-50 text-black scroll-mt-20">
+        <h1 className="flex text-[8vw] font-bold justify-center text-center md:text-[5vw] lg:text-4xl">Testimoni Alumni</h1>
+        <div className="container mx-auto px-[4%] py-[20%] lg:p-4">
+          <div className="flex flex-col lg:grid lg:grid-cols-3 gap-20">
+            <div className="text-center shadow-lg bg-gray-50">
+              <div className="bg-gray-100 rounded-full p-[4%] inline-block m-[4%] lg:p-4">
+                <Image
+                  src="/alumni/alumni1.jpg"
+                  width={120}
+                  height={120}
+                  alt="sementara"
+                  className="w-45 h-45 object-cover"
+                />
+              </div>
+              <h3 className="text-[4.3vw] font-bold mb-[2%] lg:text-2xl lg:m-4">Suharno</h3>
+              <p className="text-gray-600 text-[3.5vw] m-[4%] md:text-[2.5vw] lg:text-xl lg:m-4">
+                Lulus SMA PGRI 1 Gombong, lulus 2014. Lanjut pendidikan militer 2015. Pada tahun 2016 penempatan dinas di sekolah calon perwira angkatan darat di bandung sampai sekarang.
+              </p>
+            </div>
+            <div className="text-center shadow-lg bg-gray-50">
+              <div className="bg-gray-100 rounded-full p-[4%] inline-block m-[4%] lg:p-4">
+                <Image
+                  src="/alumni/alumni2.jpg"
+                  width={120}
+                  height={120}
+                  alt="alumni"
+                  className="w-45 h-45 object-cover"
+                />
+              </div>
+              <h3 className="text-[4.3vw] font-bold mb-[2%] lg:text-2xl lg:m-4">Staff Administrasi</h3>
+              <p className="text-gray-600 text-[3.5vw] m-[4%] md:text-[2.5vw] lg:text-xl lg:m-4">
+                Alumni SMA PGRI 1 GOMBONG bekerja di PT GAJAH TUNGGAL Tbk. SEBAGAI STAFF ADMINISTRASI
+              </p>
+            </div>
+
+
+            <div className="text-center shadow-lg bg-gray-50">
+              <div className="bg-gray-100 rounded-full p-[4%] inline-block m-[4%] lg:p-4">
+                <Image
+                  src="/alumni/alumni3.jpg"
+                  width={120}
+                  height={120}
+                  alt="sementara"
+                  className="w-45 h-45 object-cover"
+                />
+              </div>
+              <h3 className="text-[4.3vw] font-bold mb-[2%] lg:text-2xl lg:m-4">Melina</h3>
+              <p className="text-gray-600 text-[3.5vw] m-[4%] md:text-[2.5vw] lg:text-xl lg:m-4">
+                Alumni SMA PGRI 1 GOMBONG tahun 2021. Saat ini saya bekerja di Jepang di PT Elna, perusahaan yang bergerak di bidang elektronik.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section >
       <section className="bg-amber-50 p-[8%] lg:p-5 text-black">
         <div className="mx-auto px-4">
           <div className="max-w-5xl mx-auto bg-white shadow-lg rounded-lg overflow-hidden">
