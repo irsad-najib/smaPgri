@@ -2,8 +2,6 @@
 import React from "react";
 import { MapPin, Phone, Mail } from 'lucide-react';
 import Image from 'next/image';
-import Navbar from './component/navbar.js'
-import Footer from './component/footer.js';
 import { FeedbackForm } from './component/FeedbackFrom.js';
 import emailjs from '@emailjs/browser';
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -12,6 +10,7 @@ import { Navigation, Pagination, Autoplay } from 'swiper/modules';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
+import Link from "next/link.js";
 
 export default function HomePage() {
   const GoogleMapEmbed = () => (
@@ -53,8 +52,7 @@ export default function HomePage() {
   ];
   return (
     <>
-      <Navbar />
-      <section id="home" className="flex flex-col relative items-center justify-center">
+      <section id="Home" className="flex flex-col relative items-center justify-center">
         <Image
           src="/gambar_sekolah1.jpg"
           alt="Picture of the author"
@@ -110,7 +108,7 @@ export default function HomePage() {
         </div>
       </section>
       <section id="VISI MISI" className="bg-amber-50 p-[8%] lg:p-5 text-black scroll-mt-20">
-        <h1 className="flex text-[8vw] font-bold my-[4%] md:my-5 justify-center text-center md:text-[5vw] lg:text-4xl">Visi Misi dan Tujuan sekolah</h1>
+        <h1 className="flex text-[8vw] font-bold my-[4%] md:my-5 justify-center text-center md:text-[5vw] lg:text-4xl">Visi Misi dan Tujuan Sekolah</h1>
         <div className="container mx-auto px-[4%] py-[8%] lg:p-4">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Visi dan Misi */}
@@ -179,15 +177,7 @@ export default function HomePage() {
         </div>
       </section>
       <section id="ekstrakurikuler" className="bg-amber-50 mx-auto px-4 py-8 flex flex-col gap-4 scroll-mt-20">
-        {/* <Image
-          src="/logo_sekolah.png"
-          alt="Picture of the author"
-          width={10000}
-          height={10000}
-          className="h-auto w-1/2 mx-auto"
-          priority
-          /> */}
-        <h1 className="text-center text-2xl font-bold text-black">Fasilitas dan Extrakurikuler</h1>
+        <h1 className="text-center text-2xl font-bold text-black">Fasilitas dan Ekstrakurikuler</h1>
         <div className="flex flex-col justify-center items-center md:flex-row text-black">
           <div className="relative w-full mx-auto group">
             <h1 className="text-center text-2xl font-bold my-4">Fasilitas</h1>
@@ -289,6 +279,32 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+      <section id="Sambutan" className="bg-gray-700 p-[8%] lg:p-5 text-white flex flex-col md:flex-row gap-4 scroll-mt-20">
+        <div className="flex flex-col md:flex-row justify-center lg:mx-40">
+          <Image
+            src="/logo_sekolah.png"
+            alt="Picture of the author"
+            width={10000}
+            height={10000}
+            className="h-auto w-1/2 mx-auto"
+            priority
+          />
+          <div >
+            <h1 className="font-playfair text-[2.5rem] md:text-[2.8rem] font-bold">
+              Kepala Sekolah SMA PGRI 1 Gombong
+            </h1>
+            <p className="text-base md:text-lg leading-relaxed whitespace-pre-line text-justify mb-4">
+              Assalamualaikum warahmatullahi wabarakatuh {"\n\n"}
+              Puji syukur kami panjatkan ke hadirat Tuhan Yang Maha Esa atas limpahan rahmat dan karunia-Nya sehingga Website Resmi SMA PGRI 1 Gombong ini dapat hadir sebagai media informasi, komunikasi, dan publikasi sekolah kepada seluruh masyarakat.
+              {"\n\n"}
+              Website ini merupakan sarana untuk memperkenalkan profil sekolah, visi dan misi, kegiatan akademik dan non-akademik, serta prestasi yang telah diraih oleh peserta didik dan civitas akademika SMA PGRI 1 Gombong. Harapan kami, keberadaan website ini mampu memberikan manfaat nyata, baik bagi siswa, guru, orang tua, maupun masyarakat umum dalam menjalin hubungan yang lebih erat dan transparan.
+              {"\n\n"}
+              Wassalamu’alaikum warahmatullahi wabarakatuh.
+            </p>
+            <Link href="/sambutan" className="py-2 px-6 lg:py-3 lg:px-10 bg-yellow-500 hover:bg-yellow-600 transition-colors duration-300 text-base md:text-lg lg:text-2xl mt-6 rounded-md text-white font-semibold shadow-md ">Read More</Link>
+          </div>
+        </div>
+      </section >
       <section id="Testimoni" className="p-[10%] lg:p-5 bg-amber-50 text-black scroll-mt-20">
         <h1 className="flex text-[8vw] font-bold justify-center text-center md:text-[5vw] lg:text-4xl">Testimoni Alumni</h1>
         <div className="container mx-auto px-[4%] py-[20%] lg:p-4">
@@ -385,7 +401,6 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-      <Footer />
     </>
   );
 }

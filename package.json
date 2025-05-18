@@ -21,7 +21,8 @@
     "react-dom": "^19.0.0",
     "react-icons": "^5.5.0",
     "react-quill": "^2.0.0",
-    "swiper": "^11.2.6"
+    "swiper": "^11.2.6",
+    "tinymce": "^7.9.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",

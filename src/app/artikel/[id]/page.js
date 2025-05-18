@@ -60,12 +60,12 @@ export default async function ArticleDetail({ params }) {
     }
 
     return (
-        <div className="container mx-auto px-4 py-8">
-            <Link href="/" className="text-blue-600 hover:text-blue-800 mb-6 inline-block">
+        <div className="bg-amber-50 min-h-screen mx-auto px-4 py-8">
+            <Link href="/Post" className="text-black hover:text-blue-800 mb-6 inline-block">
                 ← Kembali ke daftar artikel
             </Link>
 
-            <article className="max-w-3xl mx-auto bg-white p-6 rounded-lg shadow-md">
+            <article className="max-w-3xl mx-auto bg-white p-6 rounded-lg shadow-md text-black">
                 <header className="mb-8">
                     <h1 className="text-3xl font-bold mb-4">{article.title}</h1>
 
@@ -77,7 +77,7 @@ export default async function ArticleDetail({ params }) {
                         </div>
 
                         {article.category && (
-                            <span className="bg-blue-600 text-white text-sm px-3 py-1 rounded-full">
+                            <span className="bg-yellow-500 text-white text-sm px-3 py-1 rounded-full">
                                 {article.category}
                             </span>
                         )}
@@ -99,29 +99,6 @@ export default async function ArticleDetail({ params }) {
                     className="prose prose-lg max-w-none"
                     dangerouslySetInnerHTML={{ __html: article.content }}
                 />
-
-                <div className="mt-12 pt-6 border-t border-gray-200">
-                    <div className="flex justify-between items-center">
-                        <Link href="/" className="text-blue-600 hover:text-blue-800">
-                            ← Kembali ke daftar artikel
-                        </Link>
-
-                        {/* <div>
-                            <Link
-                                href={`/edit/${article.id}`}
-                                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md mr-2"
-                            >
-                                Edit Artikel
-                            </Link>
-                            <button
-                                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md"
-                                onClick={() => alert('Fitur hapus belum diimplementasikan')}
-                            >
-                                Hapus
-                            </button>
-                        </div> */}
-                    </div>
-                </div>
             </article>
         </div>
     );

@@ -3379,6 +3379,11 @@ tinyglobby@^0.2.13:
     fdir "^6.4.4"
     picomatch "^4.0.2"
 
+tinymce@^7.9.0:
+  version "7.9.0"
+  resolved "https://registry.yarnpkg.com/tinymce/-/tinymce-7.9.0.tgz#92e2260629de77e864e0a66e61c4a6193cf9cc32"
+  integrity sha512-tTrUmUGWqy1BY1WwDYh4WiuHm23LiRTcE1Xq3WLO8HKFzde/d0bTF/hXWOa97zqGh0ndJHx/nysQaNC9Gcd16g==
+
 to-regex-range@^5.0.1:
   version "5.0.1"
   resolved "https://registry.yarnpkg.com/to-regex-range/-/to-regex-range-5.0.1.tgz#1648c44aae7c8d988a326018ed72f5b4dd0392e4"

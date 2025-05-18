@@ -4,10 +4,11 @@ import { useRouter } from 'next/navigation';
 import Head from 'next/head';
 import dynamic from 'next/dynamic';
 
+
 // Import TinyMCE dengan dynamic import untuk menghindari error SSR
-const Editor = dynamic(() => import('@tinymce/tinymce-react').then(mod => mod.Editor), {
+const MyEditor = dynamic(() => import('../component/MyEditor'), {
     ssr: false,
-    loading: () => <p>Loading Editor...</p>
+    loading: () => <p>Loading editor...</p>,
 });
 
 export default function CreateArticle() {
@@ -19,8 +20,6 @@ export default function CreateArticle() {
         category: '',
         content: ''
     });
-    const [selectedImage, setSelectedImage] = useState(null);
-    const [previewImage, setPreviewImage] = useState('');
     const [message, setMessage] = useState({ type: '', text: '' });
     const [mounted, setMounted] = useState(false);
 
@@ -38,19 +37,6 @@ export default function CreateArticle() {
     // Handle content (TinyMCE editor) changes
     const handleEditorChange = (content) => {
         setFormValues(prev => ({ ...prev, content }));
-    };
-
-    // Handle image selection
-    const handleImageChange = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            setSelectedImage(file);
-            const reader = new FileReader();
-            reader.onload = () => {
-                setPreviewImage(reader.result);
-            };
-            reader.readAsDataURL(file);
-        }
     };
 
     // Handle form submission
@@ -73,16 +59,11 @@ export default function CreateArticle() {
                 formData.append(key, formValues[key]);
             });
 
-            // Tambahkan gambar jika ada
-            if (selectedImage) {
-                formData.append('image', selectedImage);
-            }
-
             const response = await fetch('/api/create', {
                 method: 'POST',
                 body: formData,
             });
-            console.log('Response:', response);
+
             const data = await response.json();
 
             if (data.success) {
@@ -95,8 +76,6 @@ export default function CreateArticle() {
                     category: '',
                     content: ''
                 });
-                setSelectedImage(null);
-                setPreviewImage('');
 
                 // Redirect ke homepage setelah 2 detik
                 setTimeout(() => {
@@ -114,7 +93,7 @@ export default function CreateArticle() {
     };
 
     return (
-        <div className="container mx-auto px-4 py-8">
+        <div className="bg-amber-50 text-black mx-auto px-4 py-8">
             <Head>
                 <title>Tambah Artikel Baru | Website Sekolah</title>
             </Head>
@@ -178,63 +157,14 @@ export default function CreateArticle() {
                         </select>
                     </div>
 
-                    <div className="mb-4">
-                        <label className="block text-gray-700 mb-2" htmlFor="image">
-                            Gambar Utama
-                        </label>
-                        <input
-                            type="file"
-                            id="image"
-                            name="image"
-                            accept="image/*"
-                            onChange={handleImageChange}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                        />
-
-                        {previewImage && (
-                            <div className="mt-2">
-                                <p className="text-sm text-gray-500 mb-1">Preview:</p>
-                                <img src={previewImage} alt="Preview" className="max-h-40 rounded" />
-                            </div>
-                        )}
-                    </div>
-
                     <div className="mb-6">
                         <label className="block text-gray-700 mb-2" htmlFor="content">
                             Konten Artikel*
                         </label>
                         <div className="border border-gray-300 rounded-md">
                             {mounted && (
-                                <Editor
-                                    apiKey="m0jihceo4au6gd5inc3ihbnib3e2wh9ay6iqd5s0erzn0y5h" // Dapatkan key gratis di cloud.tiny.cloud
-                                    value={formValues.content}
-                                    onEditorChange={handleEditorChange}
-                                    init={{
-                                        height: 400,
-                                        menubar: false,
-                                        plugins: [
-                                            'advlist autolink lists link image charmap print preview anchor',
-                                            'searchreplace visualblocks code fullscreen',
-                                            'insertdatetime media table paste code help wordcount'
-                                        ],
-                                        toolbar:
-                                            'undo redo | formatselect | bold italic backcolor | \
-                                            alignleft aligncenter alignright alignjustify | \
-                                            bullist numlist outdent indent | removeformat | image | help',
-                                        images_upload_handler: (blobInfo, progress) => {
-                                            return new Promise((resolve, reject) => {
-                                                // Di sini Anda dapat menangani upload gambar ke server
-                                                // dan mengembalikan URL gambar
-
-                                                // Contoh sederhana untuk demo (tidak benar-benar mengunggah):
-                                                setTimeout(() => {
-                                                    // Simulasi URL gambar yang diunggah
-                                                    const imageUrl = URL.createObjectURL(blobInfo.blob());
-                                                    resolve(imageUrl);
-                                                }, 1000);
-                                            });
-                                        }
-                                    }}
+                                <MyEditor
+                                    value={formValues.content} onEditorChange={handleEditorChange}
                                 />
                             )}
                         </div>
@@ -244,7 +174,7 @@ export default function CreateArticle() {
                         <button
                             type="submit"
                             disabled={isLoading}
-                            className={`px-4 py-2 rounded-md text-white ${isLoading ? 'bg-blue-400' : 'bg-blue-600 hover:bg-blue-700'}`}
+                            className={`px-4 py-2 rounded-md text-white ${isLoading ? 'bg-yellow-400' : 'bg-yellow-500 hover:bg-yellow-600'}`}
                         >
                             {isLoading ? 'Menyimpan...' : 'Simpan Artikel'}
                         </button>

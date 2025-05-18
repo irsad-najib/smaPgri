@@ -1,28 +1,8 @@
-// app/api/create/route.js
 import { NextResponse } from 'next/server';
 import { writeFile, mkdir, readFile } from 'fs/promises';
 import { existsSync } from 'fs';
 import path from 'path';
 import { join } from 'path';
-
-// Helper function to save uploaded file
-async function saveFile(file, uploadDir) {
-    // Create uploads directory if it doesn't exist
-    if (!existsSync(uploadDir)) {
-        await mkdir(uploadDir, { recursive: true });
-    }
-
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-
-    // Create a unique filename
-    const fileName = `${Date.now()}-${file.name.replace(/\s/g, '_')}`;
-    const filePath = join(uploadDir, fileName);
-
-    // Save the file
-    await writeFile(filePath, buffer);
-    return `/uploads/${fileName}`;
-}
 
 export async function POST(request) {
     try {
@@ -34,7 +14,6 @@ export async function POST(request) {
         const author = formData.get('author') || 'Admin';
         const category = formData.get('category') || 'lainnya';
         const content = formData.get('content');
-        const imageFile = formData.get('image');
 
         // Validate required fields
         if (!title || !content) {
@@ -44,13 +23,6 @@ export async function POST(request) {
             );
         }
 
-        // Process image if provided
-        let imageUrl = '';
-        if (imageFile && imageFile instanceof File) {
-            const uploadDir = path.join(process.cwd(), 'public', 'uploads');
-            imageUrl = await saveFile(imageFile, uploadDir);
-        }
-
         // Create new article object
         const newArticle = {
             id: Date.now(),
@@ -58,7 +30,6 @@ export async function POST(request) {
             author,
             category,
             content,
-            imageUrl,
             createdAt: new Date().toISOString(),
         };
 
