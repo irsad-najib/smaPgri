@@ -1,50 +1,48 @@
+// app/api/upload/route.js
 import { NextResponse } from 'next/server';
-import { writeFile, mkdir } from 'fs/promises';
-import { existsSync } from 'fs';
-import path from 'path';
-import { join } from 'path';
+import { supabase } from '@/app/api/lib/supabase';
 
 export async function POST(request) {
     try {
-        // Get file from request
         const formData = await request.formData();
         const file = formData.get('file');
 
         if (!file || !(file instanceof File)) {
             return NextResponse.json(
-                { success: false, message: 'No file uploaded' },
+                { success: false, message: 'Tidak ada file yang diunggah' },
                 { status: 400 }
             );
         }
 
-        // Define upload directory
-        const uploadDir = path.join(process.cwd(), 'public', 'uploads');
+        const fileName = `${Date.now()}-${file.name.replace(/\s/g, '_')}`;
+        const { data, error } = await supabase.storage
+            .from('uploads')
+            .upload(fileName, file, {
+                cacheControl: '3600',
+                upsert: false,
+            });
 
-        // Create directory if it doesn't exist
-        if (!existsSync(uploadDir)) {
-            await mkdir(uploadDir, { recursive: true });
+        if (error) {
+            console.error('Upload error:', error);
+            return NextResponse.json(
+                { success: false, message: 'Gagal mengunggah gambar' },
+                { status: 500 }
+            );
         }
 
-        // Create unique filename
-        const fileName = `${Date.now()}-${file.name.replace(/\s/g, '_')}`;
-        const filePath = join(uploadDir, fileName);
-
-        // Convert file to buffer and save
-        const bytes = await file.arrayBuffer();
-        const buffer = Buffer.from(bytes);
-        await writeFile(filePath, buffer);
-
-        // Return the URL for the saved image
-        const imageUrl = `/uploads/${fileName}`;
+        const { data: publicUrl } = supabase
+            .storage
+            .from('uploads')
+            .getPublicUrl(fileName);
 
         return NextResponse.json({
             success: true,
-            location: imageUrl // TinyMCE expects the URL in 'location' field
+            location: publicUrl.publicUrl // Untuk TinyMCE
         });
     } catch (error) {
-        console.error('Error uploading image:', error);
+        console.error('Unexpected upload error:', error);
         return NextResponse.json(
-            { success: false, message: 'Error uploading image' },
+            { success: false, message: 'Terjadi kesalahan saat upload' },
             { status: 500 }
         );
     }

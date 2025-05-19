@@ -2,7 +2,7 @@ import Image from 'next/image';
 
 export default function Footer() {
     return (
-        <footer className="bg-gray-700 flex flex-col-reverse lg:flex-row text-white p-10 justify-center lg:justify-evenly">
+        <footer className="bg-gray-700 flex flex-col-reverse lg:flex-row text-white p-10 justify-center lg:justify-evenly items-left">
             <div className="flex flex-col justify-center pt-4 lg">
                 <div className="flex flex-row  items-center justify-center py-4 lg:justify-start">
                     <Image src="/sekolah.png" alt="logo" width={100} height={100} />

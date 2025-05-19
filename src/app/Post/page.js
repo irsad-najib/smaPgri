@@ -1,6 +1,5 @@
 // app/page.js
-import fs from 'fs/promises';
-import path from 'path';
+import { supabase } from '../api/lib/supabase';
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -45,16 +44,19 @@ function truncateContent(content, maxLength = 150) {
 }
 
 // Ambil data artikel dari file JSON
+
 async function getArticles() {
-    try {
-        const filePath = path.join(process.cwd(), 'data', 'articles.json');
-        const data = await fs.readFile(filePath, 'utf8');
-        const { articles } = JSON.parse(data);
-        return articles;
-    } catch (error) {
-        console.error('Error reading articles:', error);
+    const { data, error } = await supabase
+        .from('articles')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        console.error('Error fetching articles:', error);
         return [];
     }
+
+    return data;
 }
 
 export default async function Home() {
@@ -106,7 +108,7 @@ export default async function Home() {
                                         <div className="text-gray-500 text-sm mb-3">
                                             <span>{article.author}</span>
                                             <span className="mx-2">•</span>
-                                            <span>{formatDate(article.createdAt)}</span>
+                                            <span>{formatDate(article.created_at)}</span>
                                         </div>
 
                                         <div className="text-gray-600 mb-4">

@@ -1,9 +1,8 @@
 // app/artikel/[id]/page.js
-import fs from 'fs/promises';
-import path from 'path';
 import Link from 'next/link';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
+import { supabase } from '@/app/api/lib/supabase';
 
 // Format tanggal ke format Indonesia
 function formatDate(dateString) {
@@ -16,44 +15,36 @@ function formatDate(dateString) {
     return new Date(dateString).toLocaleDateString('id-ID', options);
 }
 
-// Ambil semua artikel
-async function getArticles() {
-    try {
-        const filePath = path.join(process.cwd(), 'data', 'articles.json');
-        const data = await fs.readFile(filePath, 'utf8');
-        const { articles } = JSON.parse(data);
-        return articles;
-    } catch (error) {
-        console.error('Error reading articles:', error);
-        return [];
-    }
-}
-
-// Ambil artikel berdasarkan ID
 async function getArticleById(id) {
-    const articles = await getArticles();
-    const article = articles.find(article => article.id.toString() === id);
-    return article;
-}
+    const { data, error } = await supabase
+        .from('articles')
+        .select('*')
+        .eq('id', id)
+        .single();
 
-// Generate metadata untuk artikel
-export async function generateMetadata({ params }) {
-    const article = await getArticleById(params.id);
-
-    if (!article) {
-        return {
-            title: 'Artikel Tidak Ditemukan',
-        };
+    if (error) {
+        console.error('Error fetching article:', error);
+        return null;
     }
 
-    return {
-        title: `${article.title} | Website Sekolah`,
-        description: article.content.replace(/<[^>]+>/g, '').substring(0, 160),
-    };
+    return data;
 }
 
-export default async function ArticleDetail({ params }) {
-    const article = await getArticleById(params.id);
+// Fungsi ini memastikan params sudah siap digunakan
+async function getParams(params) {
+    // Dengan melakukan await pada fungsi kosong ini, 
+    // Next.js akan menunggu params tersedia sebelum menggunakannya
+    await Promise.resolve();
+    return params;
+}
+
+export default async function ArticlePage({ params }) {
+    // Gunakan fungsi untuk memastikan params sudah tersedia
+    const resolvedParams = await getParams(params);
+    const id = resolvedParams.id;
+
+    // Sekarang gunakan ID yang sudah di-resolve
+    const article = await getArticleById(id);
 
     if (!article) {
         notFound();
@@ -73,7 +64,7 @@ export default async function ArticleDetail({ params }) {
                         <div>
                             <span className="font-medium">{article.author}</span>
                             <span className="mx-2">•</span>
-                            <span>{formatDate(article.createdAt)}</span>
+                            <span>{formatDate(article.created_at)}</span>
                         </div>
 
                         {article.category && (
@@ -84,13 +75,17 @@ export default async function ArticleDetail({ params }) {
                     </div>
                 </header>
 
+                {/* Gunakan img standar sebagai alternatif jika ada masalah dengan Image */}
                 {article.imageUrl && (
-                    <div className="mb-8 relative w-full h-80">
-                        <Image
-                            src={article.imageUrl}
+                    <div className="mb-8">
+                        <img
+                            src={article.imageUrl.startsWith('http') ? article.imageUrl : `https://${article.imageUrl}`}
                             alt={article.title}
-                            fill
-                            className="object-cover rounded-lg"
+                            className="w-full h-auto rounded-lg object-cover max-h-80"
+                            onError={(e) => {
+                                console.error("Image load failed");
+                                e.target.style.display = "none";
+                            }}
                         />
                     </div>
                 )}
