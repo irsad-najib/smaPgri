@@ -58,7 +58,29 @@ export async function POST(request) {
         // Save updated data
         await writeFile(dataPath, JSON.stringify(json, null, 2));
 
-        return NextResponse.json({ success: true });
+        try {
+            // 1. Add file ke staging area
+            await execAsync(`git add ${dataPath}`);
+
+            // 2. Buat commit dengan pesan yang deskriptif
+            const commitMessage = `Menambahkan artikel baru: ${title}`;
+            await execAsync(`git commit -m "${commitMessage}"`);
+
+            console.log('Git commit berhasil: artikel baru ditambahkan');
+
+            // 3. Opsional: Push ke remote repository
+            // Uncomment baris berikut jika ingin otomatis push
+            await execAsync('git push origin main');  // Sesuaikan dengan branch yang Anda gunakan
+
+        } catch (gitError) {
+            console.error('Gagal melakukan Git commit:', gitError);
+            // Kita tetap lanjutkan proses meski git commit gagal
+        }
+
+        return NextResponse.json({
+            success: true,
+            message: 'Artikel berhasil ditambahkan dan di-commit ke Git'
+        });
     } catch (error) {
         console.error('Error processing request:', error);
         return NextResponse.json(
