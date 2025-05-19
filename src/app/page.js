@@ -54,7 +54,7 @@ export default function HomePage() {
     <>
       <section id="Home" className="flex flex-col relative items-center justify-center">
         <Image
-          src="/gambar_sekolah1.jpg"
+          src="/gambar_sekolah1.JPG"
           alt="Picture of the author"
           width={10000}
           height={10000}
