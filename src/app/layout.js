@@ -17,7 +17,7 @@ export const metadata = {
   title: "SMA PGRI 1 GOMBONG",
   description: "Website SMA PGRI 1 GOMBONG",
   icons: {
-    icon: "/logo_sekolah.PNG",
+    icon: "/logo_sekolah.png",
   },
 };
 
