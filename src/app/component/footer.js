@@ -5,7 +5,7 @@ export default function Footer() {
         <footer className="bg-gray-700 flex flex-col-reverse lg:flex-row text-white p-10 justify-center lg:justify-evenly">
             <div className="flex flex-col justify-center pt-4 lg">
                 <div className="flex flex-row  items-center justify-center py-4 lg:justify-start">
-                    <Image src="/logo_sekolah.PNG" alt="logo" width={100} height={100} />
+                    <Image src="/sekolah.png" alt="logo" width={100} height={100} />
                     <h1 className="text-3xl font-bold ">SMA PGRI 1 GOMBONG</h1>
                 </div>
                 <ul className="flex flex-row gap-4 items-center justify-center lg:justify-start py-4 lg:ml-4 ">

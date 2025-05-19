@@ -65,7 +65,7 @@ export default function HomePage() {
           <div className="flex items-center gap-2 justify-center">
 
             <Image
-              src="/logo_yayasan.PNG"
+              src="/yayasan.png"
               alt="Picture of the author"
               width={10000}
               height={10000}
@@ -73,7 +73,7 @@ export default function HomePage() {
               priority
             />
             <Image
-              src="/logo_sekolah.PNG"
+              src="/sekolah.png"
               alt="Picture of the author"
               width={10000}
               height={10000}
@@ -89,7 +89,7 @@ export default function HomePage() {
       </section >
       <section id="profile" className="bg-amber-50 p-[8%] lg:p-5 text-black flex flex-col md:flex-row gap-4 scroll-mt-20">
         <Image
-          src="/logo_sekolah.PNG"
+          src="/sekolah.png"
           alt="Picture of the author"
           width={10000}
           height={10000}
@@ -282,7 +282,7 @@ export default function HomePage() {
       <section id="Sambutan" className="bg-gray-700 p-[8%] lg:p-5 text-white flex flex-col md:flex-row gap-4 scroll-mt-20">
         <div className="flex flex-col md:flex-row justify-center lg:mx-40">
           <Image
-            src="/logo_sekolah.PNG"
+            src="/sekolah.png"
             alt="Picture of the author"
             width={10000}
             height={10000}
