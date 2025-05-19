@@ -56,7 +56,7 @@ export default function Navbar() {
             <div className="container mx-auto flex justify-around items-center px-[4%]">
                 <div className="flex items-center">
                     <Image
-                        src="/logo_yayasan.PNG"
+                        src="/logo_yayasan.png"
                         alt="Logo Yayasan"
                         width={10000}
                         height={10000}
@@ -64,7 +64,7 @@ export default function Navbar() {
                         priority
                     />
                     <Image
-                        src="/logo_sekolah.PNG"
+                        src="/logo_sekolah.png"
                         width={10000}
                         height={10000}
                         alt="Logo Sekolah"
