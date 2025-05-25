@@ -1,12 +1,13 @@
+// app/postArtikel/page.js
 "use client";
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import Head from 'next/head';
 import dynamic from 'next/dynamic';
-
+import { isLoggedIn, getUserEmail, logout } from "../utils/auth"; // Pastikan path import benar
+import Link from 'next/link';
 
 // Import TinyMCE dengan dynamic import untuk menghindari error SSR
-const MyEditor = dynamic(() => import('../component/MyEditor'), {
+const MyEditor = dynamic(() => import('../component/MyEditor'), { // Pastikan path import benar
     ssr: false,
     loading: () => <p>Loading editor...</p>,
 });
@@ -14,6 +15,7 @@ const MyEditor = dynamic(() => import('../component/MyEditor'), {
 export default function CreateArticle() {
     const router = useRouter();
     const [isLoading, setIsLoading] = useState(false);
+    const [userEmail, setUserEmail] = useState("");
     const [formValues, setFormValues] = useState({
         title: '',
         author: '',
@@ -23,10 +25,24 @@ export default function CreateArticle() {
     const [message, setMessage] = useState({ type: '', text: '' });
     const [mounted, setMounted] = useState(false);
 
-    // Gunakan useEffect untuk menandai komponen sudah di-mount di client
     useEffect(() => {
+        // Jika tidak login, tendang ke halaman login
+        if (!isLoggedIn()) {
+            router.push("/login");
+            return;
+        }
+
+        // Ambil email user
+        setUserEmail(getUserEmail());
+
+        // Tandai komponen sudah di-mount di client
         setMounted(true);
-    }, []);
+    }, [router]); // Gabungkan kedua useEffect menjadi satu
+
+    const handleLogout = () => {
+        logout();
+        router.push("/login");
+    };
 
     // Handle input changes
     const handleInputChange = (e) => {
@@ -92,14 +108,29 @@ export default function CreateArticle() {
         }
     };
 
+    // Jika belum login, tidak perlu menampilkan apa-apa karena akan redirect
+    if (!isLoggedIn()) {
+        return null;
+    }
+
     return (
         <div className="bg-amber-50 text-black mx-auto px-4 py-8">
-            <Head>
-                <title>Tambah Artikel Baru | Website Sekolah</title>
-            </Head>
+            {/* Tambahkan header dengan informasi user dan tombol logout */}
+            <div className="max-w-2xl mx-auto mb-4 flex justify-between items-center">
+                <h1 className="text-2xl font-bold">Post Artikel</h1>
+                <div className="flex items-center gap-4">
+                    <span>Welcome, {userEmail}</span>
+                    <button
+                        onClick={handleLogout}
+                        className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600"
+                    >
+                        Logout
+                    </button>
+                </div>
+            </div>
 
             <div className="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow-md">
-                <h1 className="text-2xl font-bold mb-6">Tambah Artikel Baru</h1>
+                <h2 className="text-xl font-bold mb-6">Tambah Artikel Baru</h2>
 
                 {message.text && (
                     <div className={`p-4 mb-4 rounded ${message.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
@@ -164,13 +195,21 @@ export default function CreateArticle() {
                         <div className="border border-gray-300 rounded-md">
                             {mounted && (
                                 <MyEditor
-                                    value={formValues.content} onEditorChange={handleEditorChange}
+                                    value={formValues.content}
+                                    onEditorChange={handleEditorChange}
                                 />
                             )}
                         </div>
                     </div>
 
-                    <div className="flex justify-end">
+                    <div className="flex justify-end gap-2">
+                        <Link
+                            href="/postAdmin"
+                            type="button"
+                            className={`px-4 py-2 rounded-md text-white ${isLoading ? 'bg-yellow-400' : 'bg-yellow-500 hover:bg-yellow-600'}`}
+                        >
+                            {isLoading ? 'loading...' : 'Hapus Artikel'}
+                        </Link>
                         <button
                             type="submit"
                             disabled={isLoading}

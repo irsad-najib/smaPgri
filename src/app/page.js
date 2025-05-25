@@ -1,18 +1,72 @@
 "use client";
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { MapPin, Phone, Mail } from 'lucide-react';
 import Image from 'next/image';
 import { FeedbackForm } from './component/FeedbackFrom.js';
 import emailjs from '@emailjs/browser';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination, Autoplay } from 'swiper/modules';
+import { db } from './api/lib/firebaseConfig';
+import { collection, getDocs, orderBy, query, where, limit } from 'firebase/firestore';
 
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
-import Link from "next/link.js";
+import Link from "next/link";
+
+function formatDate(timestamp) {
+  if (!timestamp) return '-';
+
+  // Handle different timestamp formats
+  let date;
+  if (timestamp.toDate) {
+    date = timestamp.toDate();
+  } else if (timestamp.seconds) {
+    date = new Date(timestamp.seconds * 1000);
+  } else if (timestamp instanceof Date) {
+    date = timestamp;
+  } else {
+    return '-';
+  }
+
+  return date.toLocaleDateString('id-ID', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+}
+
+function extractFirstImageSrc(content) {
+  if (!content) return null;
+
+  const match = content.match(/<img\s+[^>]*src=["']([^"']+)["']/);
+  if (!match) return null;
+
+  const rawSrc = match[1];
+  if (rawSrc.startsWith('http') || rawSrc.startsWith('blob:') || rawSrc.startsWith('/')) {
+    return rawSrc;
+  }
+
+  if (rawSrc.startsWith('uploads/')) {
+    return '/' + rawSrc;
+  }
+
+  return rawSrc;
+}
+
+function truncateContent(content, maxLength = 150) {
+  if (!content) return '';
+  const plainText = content.replace(/<[^>]+>/g, '');
+  if (plainText.length <= maxLength) return plainText;
+  return plainText.substring(0, maxLength) + '...';
+}
 
 export default function HomePage() {
+  const [featuredArticles, setFeaturedArticles] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
   const GoogleMapEmbed = () => (
     <div className="w-full h-64">
       <iframe
@@ -22,381 +76,510 @@ export default function HomePage() {
         style={{ border: 0 }}
         allowFullScreen
         loading="lazy"
+        referrerPolicy="no-referrer-when-downgrade"
       ></iframe>
     </div>
   );
+
   const emailjsConfig = {
-    serviceId: 'service_azx64n8',  // ID dari service yang sudah dibuat di dashboard EmailJS
-    templateId: 'template_gq2pg5p', // ID template yang sudah dibuat
-    publicKey: 'NG7D69F5FkLzXpMsR'   // Public key dari akun EmailJS Anda
+    serviceId: 'service_azx64n8',
+    templateId: 'template_gq2pg5p',
+    publicKey: 'NG7D69F5FkLzXpMsR'
   };
 
-  // Memastikan EmailJS diinisialisasi di level aplikasi
-  React.useEffect(() => {
-    // Inisialisasi EmailJS
-    emailjs.init(emailjsConfig.publicKey);
+  // Initialize EmailJS
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      emailjs.init(emailjsConfig.publicKey);
+    }
   }, []);
 
-  const image2 = [
+  const facilitiesImages = [
+    { id: 1, src: "/fasilitas/lab_komputer.jpg", name: "Laboratorium Komputer" },
+    { id: 2, src: "/fasilitas/Laboratorium-IPA.jpg", name: "Laboratorium IPA" },
+    { id: 3, src: "/fasilitas/Perpustakaan.jpg", name: "Perpustakaan" },
+  ];
+
+  const extracurricularImages = [
     { id: 1, src: "/ekstrakurikuler/Futsal.jpg", name: "Futsal" },
     { id: 2, src: "/ekstrakurikuler/Pramuka.jpg", name: "Pramuka" },
     { id: 3, src: "/ekstrakurikuler/Komputer.jpg", name: "Komputer" },
     { id: 4, src: "/ekstrakurikuler/seni-musik.jpg", name: "Seni Musik" },
     { id: 5, src: "/ekstrakurikuler/stir-mobil.jpg", name: "Stir Mobil" },
     { id: 6, src: "/ekstrakurikuler/Tata Boga.jpg", name: "Tata Boga" },
-  ]
-  const image1 = [
-    { id: 1, src: "/fasilitas/lab_komputer.jpg", name: "Laboratorium Komputer" },
-    { id: 2, src: "/fasilitas/Laboratorium-IPA.jpg", name: "Laboratorium IPA" },
-    { id: 3, src: "/fasilitas/Perpustakaan.jpg", name: "Perpustakaan" },
   ];
-  return (
-    <>
-      <section id="Home" className="flex flex-col relative items-center justify-center">
-        <Image
-          src="/gambar_sekolah1.JPG"
-          alt="Picture of the author"
-          width={10000}
-          height={10000}
-          className=" h-auto lg:h-screen w-full opacity-80"
-          priority
-        />
-        <div className='absolute top-0 left-0 w-full h-full flex flex-col items-center justify-center gap-4 '>
-          <div className="flex items-center gap-2 justify-center">
 
-            <Image
-              src="/yayasan.png"
-              alt="Picture of the author"
-              width={10000}
-              height={10000}
-              className=" h-auto w-[9%]"
-              priority
-            />
-            <Image
-              src="/sekolah.png"
-              alt="Picture of the author"
-              width={10000}
-              height={10000}
-              className="h-auto w-[8%]"
-              priority
-            />
-            <h1 className="text-[4vw] font-bold text-white top-1/2 text-center">
-              SMA PGRI 1 GOMBONG
-            </h1>
-          </div>
-          <p className="text-[2vw] font-bold text-white top-1/2 text-center">Terakreditasi A (Unggul)</p>
-        </div>
-      </section >
-      <section id="profile" className="bg-amber-50 p-[8%] lg:p-5 text-black flex flex-col md:flex-row gap-4 scroll-mt-20">
-        <Image
-          src="/sekolah.png"
-          alt="Picture of the author"
-          width={10000}
-          height={10000}
-          className="h-auto w-1/2 mx-auto"
-          priority
-        />
-        <div className="flex flex-col justify-center text-black">
-          <h1 className="text-center text-2xl font-bold">Profil Sekolah</h1>
+  const getFeaturedArticles = async () => {
+    try {
+      setLoading(true);
+      setError(null);
 
-          <p className=" text-[3vw] mx-[10%] my-[5%] md:text-[2vw] lg:text-xl lg:p-4 text-justify mt-2">
-            SMA PGRI 1 Gombong merupakan sekolah menengah atas yang berdiri sejak tahun 1981 oleh Drs. Slamet PA dan H. Sukotjo BcHk. Awalnya menumpang di SMA Negeri 1 Gombong, kemudian pindah ke KWN Wonokriyo pada tahun 1985. Pada tahun 1990, SMA PGRI 1 Gombong berhasil membangun gedung sendiri di atas lahan seluas 5.679 m² dan saat ini beralamat di Jalan Potongan No. 292, Gombong.
-            <br /><br />
-            Dengan akreditasi A (Unggul), sekolah ini telah melahirkan banyak alumni sukses di bidang militer, industri, dan luar negeri. Kepala sekolah pertama adalah Manginar, SM.BA yang menjabat dari tahun 1981 hingga 2006. SMA PGRI 1 Gombong berkomitmen mencetak generasi yang berkarakter Pancasila, unggul, terampil, dan berbudaya.
-          </p>
+      // Create the query with proper error handling
+      const articlesRef = collection(db, 'articles');
 
-        </div>
-      </section>
-      <section id="VISI MISI" className="bg-amber-50 p-[8%] lg:p-5 text-black scroll-mt-20">
-        <h1 className="flex text-[8vw] font-bold my-[4%] md:my-5 justify-center text-center md:text-[5vw] lg:text-4xl">Visi Misi dan Tujuan Sekolah</h1>
-        <div className="container mx-auto px-[4%] py-[8%] lg:p-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Visi dan Misi */}
-            <div className="text-center shadow-md bg-gray-50 py-[4%] overflow-hidden">
-              <h3 className="text-[4.3vw] font-bold lg:text-2xl lg:m-4">Visi</h3>
-              <p className="text-gray-600 text-[3vw] mx-[10%] my-[5%] md:text-[2vw] lg:text-xl lg:p-4 text-justify">
-                Menjadikan generasi yang berkarakter Pancasila, Unggul, Terampil dan Berbudaya
-              </p>
-              <h3 className="text-[4.3vw] font-bold lg:text-2xl lg:m-4">Misi</h3>
-              <ul className="text-gray-600 text-[3vw] mx-[10%] my-[5%] md:text-[2vw] lg:text-xl lg:p-4 text-justify list-disc space-y-2">
-                <li>
-                  Mengembangkan karakter yang mencerminkan Profil Pelajar Pancasila.
-                </li>
-                <li>
-                  Mengembangkan kegiatan pendidikan yang dapat menciptakan keunggulan sekolah dalam bidang akademik maupun non akademik.
-                </li>
-                <li>
-                  Peningkatan disiplin dan etos kerja tenaga pendidik dan kependidikan.
-                </li>
-                <li>
-                  Memberikan latihan dalam kegiatan Ekstrakurikuler yang dapat menumbuhkembangkan keterampilan hidup.
-                </li>
-                <li>
-                  Peningkatan hubungan kemitraan internal dan eksternal.
-                </li>
-                <li>
-                  Peningkatan lingkungan sekolah yang kondusif dan berwawasan wiyatamandala.
-                </li>
-              </ul>
-            </div>
+      // Try to get featured articles first
+      let q;
+      try {
+        q = query(
+          articlesRef,
+          where('isFeatured', '==', true),
+          orderBy('createdAt', 'desc'),
+          limit(6) // Limit to prevent too many results
+        );
+      } catch (indexError) {
+        console.warn('Index not available for featured articles, falling back to simple query:', indexError);
+        // Fallback to simple query without orderBy if index doesn't exist
+        q = query(
+          articlesRef,
+          where('isFeatured', '==', true),
+          limit(6)
+        );
+      }
 
-            {/* Tujuan */}
-            <div className="text-center shadow-md bg-gray-50 py-[4%] overflow-hidden">
-              <h3 className="text-[4.3vw] font-bold lg:text-2xl lg:m-4">Tujuan Sekolah</h3>
-              <ul className="text-gray-600 text-[3vw] mx-[10%] my-[5%] md:text-[2vw] lg:text-xl lg:p-4 text-justify list-disc space-y-2">
-                <li>
-                  Mengembangkan kegiatan pembelajaran yang berorientasi pada pengembangan dimensi Profil Pelajar Pancasila.
-                </li>
-                <li>
-                  Menciptakan pembiasaan-pembiasaan positif yang berorientasi pengembangan karakter untuk menciptakan Profil Pelajar Pancasila.
-                </li>
-                <li>
-                  Melaksanakan kegiatan intrakurikuler dan ekstrakurikuler untuk menciptakan prestasi akademik dan non akademik.
-                </li>
-                <li>
-                  Terwujudnya sarana dan prasarana yang memadai.
-                </li>
-                <li>
-                  Memiliki wawasan IPTEK dan keterampilan hidup yang tinggi.
-                </li>
-                <li>
-                  Terciptanya toleransi agama dan budaya di lingkungan sekolah.
-                </li>
-                <li>
-                  Terwujudnya moral yang tangguh dan diaplikasikan dalam kehidupan sehari-hari.
-                </li>
-                <li>
-                  Mengembangkan dan meningkatkan partisipasi seluruh warga sekolah, masyarakat dan pihak-pihak lain dengan dilandasi sikap tanggung jawab dan dedikasi yang tinggi.
-                </li>
-                <li>
-                  Terwujudnya lingkungan sekolah yang sehat, bersih, nyaman, ramah dan menyenangkan.
-                </li>
-              </ul>
-            </div>
+      const snapshot = await getDocs(q);
+
+      if (snapshot.empty) {
+        console.log('No featured articles found, trying to get recent articles instead');
+        // If no featured articles, get recent articles
+        try {
+          q = query(
+            articlesRef,
+            orderBy('createdAt', 'desc'),
+            limit(6)
+          );
+          const recentSnapshot = await getDocs(q);
+          const articlesData = recentSnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+          }));
+          setFeaturedArticles(articlesData);
+        } catch (recentError) {
+          console.warn('Could not fetch recent articles:', recentError);
+          setFeaturedArticles([]);
+        }
+      } else {
+        const articlesData = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        setFeaturedArticles(articlesData);
+      }
+    } catch (error) {
+      console.error('Error fetching articles:', error);
+      setError('Gagal memuat artikel. Silakan coba lagi nanti.');
+      setFeaturedArticles([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    getFeaturedArticles();
+  }, []);
+
+  const renderArticleSection = () => {
+    if (loading) {
+      return (
+        <div className="flex items-center justify-center py-20">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-gray-900 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Memuat artikel...</p>
           </div>
         </div>
-      </section>
-      <section id="ekstrakurikuler" className="bg-amber-50 mx-auto px-4 py-8 flex flex-col gap-4 scroll-mt-20">
-        <h1 className="text-center text-2xl font-bold text-black">Fasilitas dan Ekstrakurikuler</h1>
-        <div className="flex flex-col justify-center items-center md:flex-row text-black">
-          <div className="relative w-full mx-auto group">
-            <h1 className="text-center text-2xl font-bold my-4">Fasilitas</h1>
-            <Swiper
-              modules={[Navigation, Pagination, Autoplay]}
-              spaceBetween={30}
-              slidesPerView={1}
-              navigation={{
-                nextEl: '.swiper-button-next',
-                prevEl: '.swiper-button-prev',
-              }}
-              pagination={{
-                clickable: true,
-                el: '.swiper-pagination',
-                bulletClass: 'swiper-pagination-bullet',
-                bulletActiveClass: 'swiper-pagination-bullet-active',
-                renderBullet: function (index, className) {
-                  return `<span class="${className}"></span>`;
-                },
-              }}
-              autoplay={{
-                delay: 3000,
-                disableOnInteraction: false,
-              }}
-              loop={true}
-              className="w-64 h-auto rounded-lg"
+      );
+    }
+
+    if (error) {
+      return (
+        <div className="flex items-center justify-center py-20">
+          <div className="text-center">
+            <p className="text-red-600 mb-4">{error}</p>
+            <button
+              onClick={getFeaturedArticles}
+              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
             >
-              {image1.map((image1) => (
-                <SwiperSlide key={image1.id}>
-                  <img
-                    src={image1.src}
-                    alt={`Slide ${image1.id}`}
-                    className='w-64 h-64 object-cover'
-                  />
-                  <h1 className="text-center text-2xl font-bold">{image1.name}</h1>
-                </SwiperSlide>
-              ))}
-
-              {/* Custom Navigation Buttons */}
-              <button className="swiper-button-prev !hidden group-hover:!flex !w-10 !h-10 !bg-black/30 hover:!bg-black/50 !backdrop-blur-sm rounded-full !text-white transition-all duration-300">
-                <span className="sr-only">Previous</span>
-              </button>
-              <button className="swiper-button-next !hidden group-hover:!flex !w-10 !h-10 !bg-black/30 hover:!bg-black/50 !backdrop-blur-sm rounded-full !text-white transition-all duration-300">
-                <span className="sr-only">Next</span>
-              </button>
-
-              {/* Custom Pagination Dots */}
-              <div className="swiper-pagination !bottom-4"></div>
-            </Swiper>
+              Coba Lagi
+            </button>
           </div>
-          <div className="relative w-full mx-auto group">
-            <h1 className="text-center text-2xl font-bold my-4">Ekstrakurikuler</h1>
-            <Swiper
-              modules={[Navigation, Pagination, Autoplay]}
-              spaceBetween={30}
-              slidesPerView={1}
-              navigation={{
-                nextEl: '.swiper-button-next',
-                prevEl: '.swiper-button-prev',
-              }}
-              pagination={{
-                clickable: true,
-                el: '.swiper-pagination',
-                bulletClass: 'swiper-pagination-bullet',
-                bulletActiveClass: 'swiper-pagination-bullet-active',
-                renderBullet: function (index, className) {
-                  return `<span class="${className}"></span>`;
-                },
-              }}
-              autoplay={{
-                delay: 3000,
-                disableOnInteraction: false,
-              }}
-              loop={true}
-              className="w-64 h-auto rounded-lg"
+        </div>
+      );
+    }
+
+    if (featuredArticles.length === 0) {
+      return (
+        <div className="flex items-center justify-center py-20">
+          <p className="text-gray-600">Belum ada artikel yang tersedia.</p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-12">
+        {featuredArticles.map((article, index) => {
+          const isImageLeft = index % 2 === 0;
+          return (
+            <div
+              key={article.id}
+              className={`flex flex-col md:flex-row items-center gap-8 ${isImageLeft ? '' : 'md:flex-row-reverse'
+                }`}
             >
-              {image2.map((image2) => (
-                <SwiperSlide key={image2.id}>
-                  <img
-                    src={image2.src}
-                    alt={`Slide ${image2.id}`}
-                    className='w-64 h-64 object-cover'
-                  />
-                  <h1 className="text-center text-2xl font-bold">{image2.name}</h1>
-                </SwiperSlide>
-              ))}
-
-              {/* Custom Navigation Buttons */}
-              <button className="swiper-button-prev !hidden group-hover:!flex !w-10 !h-10 !bg-black/30 hover:!bg-black/50 !backdrop-blur-sm rounded-full !text-white transition-all duration-300">
-                <span className="sr-only">Previous</span>
-              </button>
-              <button className="swiper-button-next !hidden group-hover:!flex !w-10 !h-10 !bg-black/30 hover:!bg-black/50 !backdrop-blur-sm rounded-full !text-white transition-all duration-300">
-                <span className="sr-only">Next</span>
-              </button>
-
-              {/* Custom Pagination Dots */}
-              <div className="swiper-pagination !bottom-4"></div>
-            </Swiper>
-          </div>
-        </div>
-      </section>
-      <section id="Sambutan" className="bg-gray-700 p-[8%] lg:p-5 text-white flex flex-col md:flex-row gap-4 scroll-mt-20">
-        <div className="flex flex-col md:flex-row justify-center lg:mx-40">
-          <Image
-            src="/sekolah.png"
-            alt="Picture of the author"
-            width={10000}
-            height={10000}
-            className="h-auto w-1/2 mx-auto"
-            priority
-          />
-          <div >
-            <h1 className="font-playfair text-[2.5rem] md:text-[2.8rem] font-bold">
-              Kepala Sekolah SMA PGRI 1 Gombong
-            </h1>
-            <p className="text-base md:text-lg leading-relaxed whitespace-pre-line text-justify mb-4">
-              Assalamualaikum warahmatullahi wabarakatuh {"\n\n"}
-              Puji syukur kami panjatkan ke hadirat Tuhan Yang Maha Esa atas limpahan rahmat dan karunia-Nya sehingga Website Resmi SMA PGRI 1 Gombong ini dapat hadir sebagai media informasi, komunikasi, dan publikasi sekolah kepada seluruh masyarakat.
-              {"\n\n"}
-              Website ini merupakan sarana untuk memperkenalkan profil sekolah, visi dan misi, kegiatan akademik dan non-akademik, serta prestasi yang telah diraih oleh peserta didik dan civitas akademika SMA PGRI 1 Gombong. Harapan kami, keberadaan website ini mampu memberikan manfaat nyata, baik bagi siswa, guru, orang tua, maupun masyarakat umum dalam menjalin hubungan yang lebih erat dan transparan.
-              {"\n\n"}
-              Wassalamu’alaikum warahmatullahi wabarakatuh.
-            </p>
-            <Link href="/sambutan" className="py-2 px-6 lg:py-3 lg:px-10 bg-yellow-500 hover:bg-yellow-600 transition-colors duration-300 text-base md:text-lg lg:text-2xl mt-6 rounded-md text-white font-semibold shadow-md ">Read More</Link>
-          </div>
-        </div>
-      </section >
-      <section id="Testimoni" className="p-[10%] lg:p-5 bg-amber-50 text-black scroll-mt-20">
-        <h1 className="flex text-[8vw] font-bold justify-center text-center md:text-[5vw] lg:text-4xl">Testimoni Alumni</h1>
-        <div className="container mx-auto px-[4%] py-[20%] lg:p-4">
-          <div className="flex flex-col lg:grid lg:grid-cols-3 gap-20">
-            <div className="text-center shadow-lg bg-gray-50">
-              <div className="bg-gray-100 rounded-full p-[4%] inline-block m-[4%] lg:p-4">
-                <Image
-                  src="/alumni/alumni1.jpg"
-                  width={120}
-                  height={120}
-                  alt="sementara"
-                  className="w-45 h-45 object-cover"
+              {/* Gambar */}
+              <div className="md:w-1/2 w-full h-64 relative">
+                <img
+                  src={extractFirstImageSrc(article.content) || '/logo_sekolah.jpg'}
+                  alt={article.title || 'Article image'}
+                  className="object-cover rounded-lg shadow w-full h-full"
                 />
               </div>
-              <h3 className="text-[4.3vw] font-bold mb-[2%] lg:text-2xl lg:m-4">Suharno</h3>
-              <p className="text-gray-600 text-[3.5vw] m-[4%] md:text-[2.5vw] lg:text-xl lg:m-4">
+
+              {/* Teks */}
+              <div className="md:w-1/2 w-full space-y-4 text-justify">
+                <h2 className="text-2xl font-bold">{article.title || 'Untitled'}</h2>
+                <p className="text-sm text-gray-500">{formatDate(article.createdAt)}</p>
+                <p className="text-gray-700">{truncateContent(article.content)}</p>
+                <Link
+                  href={`/artikel/${article.id}`}
+                  className="inline-block text-blue-500 hover:underline"
+                >
+                  Baca Selengkapnya
+                </Link>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
+  const SwiperCarousel = ({ images, title }) => (
+    <div className="relative w-full mx-auto group">
+      <h2 className="text-center text-2xl font-bold my-4">{title}</h2>
+      <Swiper
+        modules={[Navigation, Pagination, Autoplay]}
+        spaceBetween={30}
+        slidesPerView={1}
+        navigation={{
+          nextEl: `.swiper-button-next-${title.toLowerCase().replace(' ', '-')}`,
+          prevEl: `.swiper-button-prev-${title.toLowerCase().replace(' ', '-')}`,
+        }}
+        pagination={{
+          clickable: true,
+          el: `.swiper-pagination-${title.toLowerCase().replace(' ', '-')}`,
+        }}
+        autoplay={{
+          delay: 3000,
+          disableOnInteraction: false,
+        }}
+        loop={true}
+        className="w-64 h-auto rounded-lg"
+      >
+        {images.map((image) => (
+          <SwiperSlide key={image.id}>
+            <div className="relative w-64 h-64">
+              <Image
+                src={image.src}
+                alt={image.name}
+                fill
+                className="object-cover rounded-lg"
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                }}
+              />
+            </div>
+            <h3 className="text-center text-lg font-semibold mt-2">{image.name}</h3>
+          </SwiperSlide>
+        ))}
+
+        {/* Custom Navigation Buttons */}
+        <button className={`swiper-button-prev-${title.toLowerCase().replace(' ', '-')} !hidden group-hover:!flex !w-10 !h-10 !bg-black/30 hover:!bg-black/50 !backdrop-blur-sm rounded-full !text-white transition-all duration-300`}>
+          <span className="sr-only">Previous</span>
+        </button>
+        <button className={`swiper-button-next-${title.toLowerCase().replace(' ', '-')} !hidden group-hover:!flex !w-10 !h-10 !bg-black/30 hover:!bg-black/50 !backdrop-blur-sm rounded-full !text-white transition-all duration-300`}>
+          <span className="sr-only">Next</span>
+        </button>
+
+        {/* Custom Pagination Dots */}
+        <div className={`swiper-pagination-${title.toLowerCase().replace(' ', '-')} !bottom-4`}></div>
+      </Swiper>
+    </div>
+  );
+
+  return (
+    <>
+      {/* Hero Section */}
+      <section id="Home" className="flex flex-col relative items-center justify-center">
+        <div className="relative w-full h-screen">
+          <Image
+            src="/gambar_sekolah1.JPG"
+            alt="SMA PGRI 1 Gombong"
+            fill
+            className="object-cover opacity-80"
+            priority
+          />
+          <div className='absolute inset-0 flex flex-col items-center justify-center gap-4 bg-black/20'>
+            <div className="flex items-center gap-2 justify-center">
+              <div className="relative w-16 h-16 md:w-20 md:h-20">
+                <Image
+                  src="/yayasan.png"
+                  alt="Logo Yayasan"
+                  fill
+                  className="object-contain"
+                  priority
+                />
+              </div>
+              <div className="relative w-14 h-14 md:w-18 md:h-18">
+                <Image
+                  src="/sekolah.png"
+                  alt="Logo Sekolah"
+                  fill
+                  className="object-contain"
+                  priority
+                />
+              </div>
+              <h1 className="text-2xl md:text-4xl lg:text-6xl font-bold text-white text-center">
+                SMA PGRI 1 GOMBONG
+              </h1>
+            </div>
+            <p className="text-lg md:text-2xl lg:text-3xl font-bold text-white text-center">
+              Terakreditasi A (Unggul)
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* News Section */}
+      <section id="Berita" className="bg-amber-50 py-16 text-black scroll-mt-20">
+        <div className="container mx-auto px-4">
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-center mb-12">
+            Berita Terbaru
+          </h1>
+          {renderArticleSection()}
+        </div>
+      </section>
+
+      {/* Profile Section */}
+      <section id="profile" className="bg-amber-50 py-16 text-black flex flex-col md:flex-row gap-8 scroll-mt-20">
+        <div className="container mx-auto px-4 flex flex-col md:flex-row items-center gap-8">
+          <div className="md:w-1/3 flex justify-center">
+            <div className="relative w-64 h-64">
+              <Image
+                src="/sekolah.png"
+                alt="Logo Sekolah"
+                fill
+                className="object-contain"
+                priority
+              />
+            </div>
+          </div>
+          <div className="md:w-2/3">
+            <h1 className="text-center md:text-left text-3xl font-bold mb-6">Profil Sekolah</h1>
+            <div className="text-lg leading-relaxed text-justify space-y-4">
+              <p>
+                SMA PGRI 1 Gombong merupakan sekolah menengah atas yang berdiri sejak tahun 1981 oleh Drs. Slamet PA dan H. Sukotjo BcHk. Awalnya menumpang di SMA Negeri 1 Gombong, kemudian pindah ke KWN Wonokriyo pada tahun 1985. Pada tahun 1990, SMA PGRI 1 Gombong berhasil membangun gedung sendiri di atas lahan seluas 5.679 m² dan saat ini beralamat di Jalan Potongan No. 292, Gombong.
+              </p>
+              <p>
+                Dengan akreditasi A (Unggul), sekolah ini telah melahirkan banyak alumni sukses di bidang militer, industri, dan luar negeri. Kepala sekolah pertama adalah Manginar, SM.BA yang menjabat dari tahun 1981 hingga 2006. SMA PGRI 1 Gombong berkomitmen mencetak generasi yang berkarakter Pancasila, unggul, terampil, dan berbudaya.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Vision Mission Section */}
+      <section id="VISI MISI" className="bg-amber-50 py-16 text-black scroll-mt-20">
+        <div className="container mx-auto px-4">
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-center mb-12">
+            Visi Misi dan Tujuan Sekolah
+          </h1>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Vision and Mission */}
+            <div className="bg-white shadow-lg rounded-lg p-6">
+              <h3 className="text-2xl font-bold mb-4 text-center">Visi</h3>
+              <p className="text-gray-700 text-lg mb-6 text-justify">
+                Menjadikan generasi yang berkarakter Pancasila, Unggul, Terampil dan Berbudaya
+              </p>
+
+              <h3 className="text-2xl font-bold mb-4 text-center">Misi</h3>
+              <ul className="text-gray-700 text-base space-y-3 list-disc pl-6">
+                <li>Mengembangkan karakter yang mencerminkan Profil Pelajar Pancasila.</li>
+                <li>Mengembangkan kegiatan pendidikan yang dapat menciptakan keunggulan sekolah dalam bidang akademik maupun non akademik.</li>
+                <li>Peningkatan disiplin dan etos kerja tenaga pendidik dan kependidikan.</li>
+                <li>Memberikan latihan dalam kegiatan Ekstrakurikuler yang dapat menumbuhkembangkan keterampilan hidup.</li>
+                <li>Peningkatan hubungan kemitraan internal dan eksternal.</li>
+                <li>Peningkatan lingkungan sekolah yang kondusif dan berwawasan wiyatamandala.</li>
+              </ul>
+            </div>
+
+            {/* School Objectives */}
+            <div className="bg-white shadow-lg rounded-lg p-6">
+              <h3 className="text-2xl font-bold mb-4 text-center">Tujuan Sekolah</h3>
+              <ul className="text-gray-700 text-base space-y-3 list-disc pl-6">
+                <li>Mengembangkan kegiatan pembelajaran yang berorientasi pada pengembangan dimensi Profil Pelajar Pancasila.</li>
+                <li>Menciptakan pembiasaan-pembiasaan positif yang berorientasi pengembangan karakter untuk menciptakan Profil Pelajar Pancasila.</li>
+                <li>Melaksanakan kegiatan intrakurikuler dan ekstrakurikuler untuk menciptakan prestasi akademik dan non akademik.</li>
+                <li>Terwujudnya sarana dan prasarana yang memadai.</li>
+                <li>Memiliki wawasan IPTEK dan keterampilan hidup yang tinggi.</li>
+                <li>Terciptanya toleransi agama dan budaya di lingkungan sekolah.</li>
+                <li>Terwujudnya moral yang tangguh dan diaplikasikan dalam kehidupan sehari-hari.</li>
+                <li>Mengembangkan dan meningkatkan partisipasi seluruh warga sekolah, masyarakat dan pihak-pihak lain dengan dilandasi sikap tanggung jawab dan dedikasi yang tinggi.</li>
+                <li>Terwujudnya lingkungan sekolah yang sehat, bersih, nyaman, ramah dan menyenangkan.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Facilities and Extracurricular Section */}
+      <section id="ekstrakurikuler" className="bg-amber-50 py-16 scroll-mt-20">
+        <div className="container mx-auto px-4">
+          <h1 className="text-center text-3xl md:text-4xl font-bold text-black mb-12">
+            Fasilitas dan Ekstrakurikuler
+          </h1>
+          <div className="flex flex-col lg:flex-row justify-center items-center gap-12 text-black">
+            <SwiperCarousel images={facilitiesImages} title="Fasilitas" />
+            <SwiperCarousel images={extracurricularImages} title="Ekstrakurikuler" />
+          </div>
+        </div>
+      </section>
+
+      {/* Principal's Message Section */}
+      <section id="Sambutan" className="bg-gray-700 py-16 text-white scroll-mt-20">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col lg:flex-row items-center gap-8">
+            <div className="lg:w-1/3 flex justify-center">
+              <div className="relative w-64 h-64">
+                <Image
+                  src="/sekolah.png"
+                  alt="Logo Sekolah"
+                  fill
+                  className="object-contain"
+                  priority
+                />
+              </div>
+            </div>
+            <div className="lg:w-2/3">
+              <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-6">
+                Kepala Sekolah SMA PGRI 1 Gombong
+              </h1>
+              <div className="text-base md:text-lg leading-relaxed text-justify space-y-4 mb-6">
+                <p>Assalamualaikum warahmatullahi wabarakatuh</p>
+                <p>
+                  Puji syukur kami panjatkan ke hadirat Tuhan Yang Maha Esa atas limpahan rahmat dan karunia-Nya sehingga Website Resmi SMA PGRI 1 Gombong ini dapat hadir sebagai media informasi, komunikasi, dan publikasi sekolah kepada seluruh masyarakat.
+                </p>
+                <p>
+                  Website ini merupakan sarana untuk memperkenalkan profil sekolah, visi dan misi, kegiatan akademik dan non-akademik, serta prestasi yang telah diraih oleh peserta didik dan civitas akademika SMA PGRI 1 Gombong. Harapan kami, keberadaan website ini mampu memberikan manfaat nyata, baik bagi siswa, guru, orang tua, maupun masyarakat umum dalam menjalin hubungan yang lebih erat dan transparan.
+                </p>
+                <p>Wassalamu'alaikum warahmatullahi wabarakatuh.</p>
+              </div>
+              <Link
+                href="/sambutan"
+                className="inline-block py-3 px-6 bg-yellow-500 hover:bg-yellow-600 transition-colors duration-300 text-lg rounded-md text-white font-semibold shadow-md"
+              >
+                Baca Selengkapnya
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Alumni Testimonials Section */}
+      <section id="Testimoni" className="py-16 bg-amber-50 text-black scroll-mt-20">
+        <div className="container mx-auto px-4">
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-center mb-12">
+            Testimoni Alumni
+          </h1>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="text-center shadow-lg bg-white rounded-lg p-6">
+              <div className="relative w-32 h-32 mx-auto mb-4">
+                <Image
+                  src="/alumni/alumni1.jpg"
+                  fill
+                  alt="Suharno"
+                  className="rounded-full object-cover"
+                />
+              </div>
+              <h3 className="text-xl font-bold mb-4">Suharno</h3>
+              <p className="text-gray-600 text-base">
                 Lulus SMA PGRI 1 Gombong, lulus 2014. Lanjut pendidikan militer 2015. Pada tahun 2016 penempatan dinas di sekolah calon perwira angkatan darat di bandung sampai sekarang.
               </p>
             </div>
-            <div className="text-center shadow-lg bg-gray-50">
-              <div className="bg-gray-100 rounded-full p-[4%] inline-block m-[4%] lg:p-4">
+
+            <div className="text-center shadow-lg bg-white rounded-lg p-6">
+              <div className="relative w-32 h-32 mx-auto mb-4">
                 <Image
                   src="/alumni/alumni2.jpg"
-                  width={120}
-                  height={120}
-                  alt="alumni"
-                  className="w-45 h-45 object-cover"
+                  fill
+                  alt="Staff Administrasi"
+                  className="rounded-full object-cover"
                 />
               </div>
-              <h3 className="text-[4.3vw] font-bold mb-[2%] lg:text-2xl lg:m-4">Staff Administrasi</h3>
-              <p className="text-gray-600 text-[3.5vw] m-[4%] md:text-[2.5vw] lg:text-xl lg:m-4">
+              <h3 className="text-xl font-bold mb-4">Staff Administrasi</h3>
+              <p className="text-gray-600 text-base">
                 Alumni SMA PGRI 1 GOMBONG bekerja di PT GAJAH TUNGGAL Tbk. SEBAGAI STAFF ADMINISTRASI
               </p>
             </div>
 
-
-            <div className="text-center shadow-lg bg-gray-50">
-              <div className="bg-gray-100 rounded-full p-[4%] inline-block m-[4%] lg:p-4">
+            <div className="text-center shadow-lg bg-white rounded-lg p-6">
+              <div className="relative w-32 h-32 mx-auto mb-4">
                 <Image
                   src="/alumni/alumni3.jpg"
-                  width={120}
-                  height={120}
-                  alt="sementara"
-                  className="w-45 h-45 object-cover"
+                  fill
+                  alt="Melina"
+                  className="rounded-full object-cover"
                 />
               </div>
-              <h3 className="text-[4.3vw] font-bold mb-[2%] lg:text-2xl lg:m-4">Melina</h3>
-              <p className="text-gray-600 text-[3.5vw] m-[4%] md:text-[2.5vw] lg:text-xl lg:m-4">
+              <h3 className="text-xl font-bold mb-4">Melina</h3>
+              <p className="text-gray-600 text-base">
                 Alumni SMA PGRI 1 GOMBONG tahun 2021. Saat ini saya bekerja di Jepang di PT Elna, perusahaan yang bergerak di bidang elektronik.
               </p>
             </div>
           </div>
         </div>
-      </section >
-      <section className="bg-amber-50 p-[8%] lg:p-5 text-black">
-        <div className="mx-auto px-4">
-          <div className="max-w-5xl mx-auto bg-white shadow-lg rounded-lg overflow-hidden">
-            <div className="md:flex">
-              <div className="md:w-1/2 bg-yellow-500 text-white p-6">
-                <h2 className="text-2xl font-bold mb-4">SMA PGRI 1 GOMBONG</h2>
+      </section>
 
-                <div className="space-y-4">
+      {/* Contact Section */}
+      <section className="bg-amber-50 py-16 text-black">
+        <div className="container mx-auto px-4">
+          <div className="max-w-6xl mx-auto bg-white shadow-lg rounded-lg overflow-hidden">
+            <div className="md:flex">
+              <div className="md:w-1/2 bg-yellow-500 text-white p-8">
+                <h2 className="text-3xl font-bold mb-6">SMA PGRI 1 GOMBONG</h2>
+
+                <div className="space-y-6">
                   <div className="flex items-start">
-                    <MapPin className="w-9 h-9 mr-3" />
-                    <div className="flex flex-col">
-                      <span className="font-bold text-lg">SMA PGRI 1 GOMBONG</span>
-                      <span>Jl. Potongan No. 292 Gombong</span>
-                      <span className="text-sm">(Sebelah timur Terminal Bus Gombong atau Utara Pasar Wonokriyo Gombong)</span>
+                    <MapPin className="w-6 h-6 mr-4 mt-1 flex-shrink-0" />
+                    <div>
+                      <div className="font-bold text-lg mb-1">SMA PGRI 1 GOMBONG</div>
+                      <div className="mb-1">Jl. Potongan No. 292 Gombong</div>
+                      <div className="text-sm opacity-90">
+                        (Sebelah timur Terminal Bus Gombong atau Utara Pasar Wonokriyo Gombong)
+                      </div>
                     </div>
                   </div>
+
                   <div className="flex items-center">
-                    <Phone className="w-6 h-6 mr-3" />
-                    <span>0287-472426</span>
+                    <Phone className="w-6 h-6 mr-4" />
+                    <span className="text-lg">0287-472426</span>
                   </div>
+
                   <div className="flex items-center">
-                    <Mail className="w-6 h-6 mr-3" />
-                    <span>smapgri1gombongg@gmail.com </span>
+                    <Mail className="w-6 h-6 mr-4" />
+                    <span className="text-lg">smapgri1gombongg@gmail.com</span>
                   </div>
                 </div>
 
-                <div className="mt-6">
+                <div className="mt-8">
                   <GoogleMapEmbed />
                 </div>
               </div>
-              <div className="md:w-1/2 p-6">
+
+              <div className="md:w-1/2 p-8">
                 <FeedbackForm
                   serviceId={emailjsConfig.serviceId}
                   templateId={emailjsConfig.templateId}
                   publicKey={emailjsConfig.publicKey}
                 />
               </div>
-
             </div>
           </div>
         </div>

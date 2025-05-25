@@ -1,33 +1,32 @@
 // app/artikel/[id]/page.js
 import Link from 'next/link';
-import Image from 'next/image';
 import { notFound } from 'next/navigation';
-import { supabase } from '@/app/api/lib/supabase';
+import { db } from '@/app/api/lib/firebaseConfig';
+import { getDoc, doc } from 'firebase/firestore';
 
 // Format tanggal ke format Indonesia
-function formatDate(dateString) {
-    const options = {
+function formatDate(timestamp) {
+    if (!timestamp || !timestamp.toDate) return '-';
+
+    const date = timestamp.toDate();
+    return date.toLocaleDateString('id-ID', {
         weekday: 'long',
         year: 'numeric',
         month: 'long',
         day: 'numeric'
-    };
-    return new Date(dateString).toLocaleDateString('id-ID', options);
+    });
 }
 
 async function getArticleById(id) {
-    const { data, error } = await supabase
-        .from('articles')
-        .select('*')
-        .eq('id', id)
-        .single();
+    const ref = doc(db, 'articles', id);
+    const snapshot = await getDoc(ref);
 
-    if (error) {
-        console.error('Error fetching article:', error);
+    if (!snapshot.exists()) {
+        console.error('Article not found');
         return null;
     }
 
-    return data;
+    return { id: snapshot.id, ...snapshot.data() };
 }
 
 // Fungsi ini memastikan params sudah siap digunakan
@@ -64,7 +63,7 @@ export default async function ArticlePage({ params }) {
                         <div>
                             <span className="font-medium">{article.author}</span>
                             <span className="mx-2">•</span>
-                            <span>{formatDate(article.created_at)}</span>
+                            <span>{formatDate(article.createdAt)}</span>
                         </div>
 
                         {article.category && (

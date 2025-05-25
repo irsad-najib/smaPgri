@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
+import { isLoggedIn, setLoggedIn } from "../utils/auth";
 
 // Define allowed users - in a real app, this would come from a secure API
 const ALLOWED_USERS = [
@@ -15,12 +16,15 @@ const LoginPage = () => {
     const router = useRouter();
     const emailRef = useRef(null);
 
-    // Focus on email input when component mounts
+    // Redirect jika sudah login
     useEffect(() => {
+        if (isLoggedIn()) {
+            router.push("/postArtikel");
+        }
         if (emailRef.current) {
             emailRef.current.focus();
         }
-    }, []);
+    }, [router]);
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -32,6 +36,8 @@ const LoginPage = () => {
 
         if (validUser) {
             setError("");
+            // Simpan status login
+            setLoggedIn(validUser.email);
             router.push("/postArtikel");
         } else {
             setError("Invalid email or password");
