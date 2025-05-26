@@ -62,11 +62,12 @@ export default function Home() {
                 snapshot.docs
                     .map(doc => {
                         const category = doc.data().category;
-                        // Normalisasi kategori: trim whitespace dan convert ke lowercase untuk comparison
+                        // Normalisasi kategori: trim whitespace
                         return category ? category.trim() : '';
                     })
                     .filter(category => category !== '')
             )];
+
             setCategories(uniqueCategories);
         } catch (error) {
             console.error('Error fetching categories:', error);
@@ -79,7 +80,7 @@ export default function Home() {
             let q;
 
             if (categoryFilter && categoryFilter !== '') {
-                // Query dengan filter kategori
+                // Query dengan filter kategori - gunakan normalisasi yang konsisten
                 q = query(
                     collection(db, 'articles'),
                     where('category', '==', categoryFilter.trim()),
@@ -100,7 +101,7 @@ export default function Home() {
                 if (categoryFilter && categoryFilter !== '') {
                     q = query(
                         collection(db, 'articles'),
-                        where('category', '==', categoryFilter),
+                        where('category', '==', categoryFilter.trim()),
                         orderBy('createdAt', 'desc'),
                         startAfter(lastDoc),
                         limit(ARTICLES_PER_PAGE)
@@ -116,10 +117,15 @@ export default function Home() {
             }
 
             const snapshot = await getDocs(q);
-            const newArticles = snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            }));
+            const newArticles = snapshot.docs.map(doc => {
+                const data = doc.data();
+                return {
+                    id: doc.id,
+                    ...data,
+                    // Normalisasi kategori saat mengambil data
+                    category: data.category ? data.category.trim() : ''
+                };
+            });
 
             if (isLoadMore) {
                 setArticles(prev => [...prev, ...newArticles]);
@@ -170,6 +176,15 @@ export default function Home() {
         setLoadingMore(false);
     };
 
+    // Debug: Log current state
+    useEffect(() => {
+        console.log('Current state:', {
+            selectedCategory,
+            articlesCount: articles.length,
+            categories
+        });
+    }, [selectedCategory, articles, categories]);
+
     if (loading) {
         return (
             <div className="bg-amber-50 min-h-screen">
@@ -187,7 +202,6 @@ export default function Home() {
         <div className="bg-amber-50 min-h-screen">
             <div className="text-black mx-auto px-4 py-8">
                 <h1 className="text-3xl font-bold mb-6">Artikel Terbaru</h1>
-
                 {/* Filter Kategori */}
                 <div className="mb-8">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -300,7 +314,7 @@ export default function Home() {
                                     className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-bold py-3 px-6 rounded-lg transition-colors"
                                 >
                                     {loadingMore ? (
-                                        <span className="flex items-center">
+                                        <span className="flex items-center justify-center">
                                             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                                             Memuat...
                                         </span>
@@ -314,6 +328,7 @@ export default function Home() {
                         {/* Info total artikel yang ditampilkan */}
                         <div className="text-center mt-4 text-gray-500 text-sm">
                             Menampilkan {articles.length} artikel
+                            {selectedCategory && ` untuk kategori "${selectedCategory}"`}
                             {!hasMore && articles.length > ARTICLES_PER_PAGE && ' (semua artikel telah dimuat)'}
                         </div>
                     </>
