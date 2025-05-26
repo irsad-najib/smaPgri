@@ -60,8 +60,12 @@ export default function Home() {
             const snapshot = await getDocs(collection(db, 'articles'));
             const uniqueCategories = [...new Set(
                 snapshot.docs
-                    .map(doc => doc.data().category)
-                    .filter(category => category && category.trim() !== '')
+                    .map(doc => {
+                        const category = doc.data().category;
+                        // Normalisasi kategori: trim whitespace dan convert ke lowercase untuk comparison
+                        return category ? category.trim() : '';
+                    })
+                    .filter(category => category !== '')
             )];
             setCategories(uniqueCategories);
         } catch (error) {
@@ -78,7 +82,7 @@ export default function Home() {
                 // Query dengan filter kategori
                 q = query(
                     collection(db, 'articles'),
-                    where('category', '==', categoryFilter),
+                    where('category', '==', categoryFilter.trim()),
                     orderBy('createdAt', 'desc'),
                     limit(ARTICLES_PER_PAGE)
                 );
