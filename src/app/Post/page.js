@@ -95,6 +95,20 @@ export default function Home() {
                 );
             }
 
+            const snapshot = await getDocs(q);
+            const newArticles = snapshot.docs.map(doc => {
+                const data = doc.data();
+                return {
+                    id: doc.id,
+                    ...data,
+                    // Normalisasi kategori saat mengambil data
+                    category: data.category ? data.category.trim() : ''
+                };
+            });
+
+            console.log('Fetched articles:', newArticles.length); // Debug log
+            console.log('Articles data:', newArticles.map(a => ({ id: a.id, title: a.title, category: a.category })));
+
             // Jika load more, mulai setelah dokumen terakhir
             if (isLoadMore && lastDoc) {
                 if (categoryFilter && categoryFilter !== '') {
