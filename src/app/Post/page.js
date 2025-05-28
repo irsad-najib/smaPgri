@@ -1,4 +1,3 @@
-// app/page.js
 'use client';
 
 import { db } from '../api/lib/firebaseConfig';
@@ -6,8 +5,72 @@ import { collection, getDocs, orderBy, query, limit, startAfter, where, Timestam
 import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useInView } from 'react-intersection-observer';
 
 const ARTICLES_PER_PAGE = 10; // Limit artikel per halaman
+
+// Animation variants
+const fadeInUp = {
+    hidden: { opacity: 0, y: 60 },
+    visible: {
+        opacity: 1,
+        y: 0,
+        transition: { duration: 0.6, ease: "easeOut" }
+    }
+};
+
+const fadeInLeft = {
+    hidden: { opacity: 0, x: -60 },
+    visible: {
+        opacity: 1,
+        x: 0,
+        transition: { duration: 0.6, ease: "easeOut" }
+    }
+};
+
+const staggerContainer = {
+    hidden: { opacity: 0 },
+    visible: {
+        opacity: 1,
+        transition: {
+            staggerChildren: 0.1,
+            delayChildren: 0.2
+        }
+    }
+};
+
+const cardVariants = {
+    hidden: {
+        opacity: 0,
+        y: 50,
+        scale: 0.95
+    },
+    visible: {
+        opacity: 1,
+        y: 0,
+        scale: 1,
+        transition: {
+            duration: 0.5,
+            ease: "easeOut"
+        }
+    },
+    exit: {
+        opacity: 0,
+        y: -50,
+        scale: 0.95,
+        transition: { duration: 0.3 }
+    }
+};
+
+const filterVariants = {
+    hidden: { opacity: 0, y: -20 },
+    visible: {
+        opacity: 1,
+        y: 0,
+        transition: { duration: 0.5 }
+    }
+};
 
 function formatDate(timestamp) {
     if (!timestamp || !timestamp.toDate) return '-';
@@ -53,6 +116,12 @@ export default function Home() {
     const [loadingMore, setLoadingMore] = useState(false);
     const [hasMore, setHasMore] = useState(true);
     const [lastDoc, setLastDoc] = useState(null);
+
+    // Intersection Observer hooks
+    const [headerRef, headerInView] = useInView({ threshold: 0.3, triggerOnce: true });
+    const [filterRef, filterInView] = useInView({ threshold: 0.5, triggerOnce: true });
+    const [articlesRef, articlesInView] = useInView({ threshold: 0.1, triggerOnce: true });
+    const [loadMoreRef, loadMoreInView] = useInView({ threshold: 0.8, triggerOnce: false });
 
     // Fungsi untuk mengambil kategori unik
     const getCategories = async () => {
@@ -176,41 +245,82 @@ export default function Home() {
         setLoadingMore(false);
     };
 
-    // Debug: Log current state
+    // Auto load more when load more button comes into view
     useEffect(() => {
-        console.log('Current state:', {
-            selectedCategory,
-            articlesCount: articles.length,
-            categories
-        });
-    }, [selectedCategory, articles, categories]);
+        if (loadMoreInView && hasMore && !loadingMore && !loading) {
+            handleLoadMore();
+        }
+    }, [loadMoreInView, hasMore, loadingMore, loading]);
 
     if (loading) {
         return (
-            <div className="bg-amber-50 min-h-screen">
+            <motion.div
+                className="bg-amber-50 min-h-screen"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.5 }}
+            >
                 <div className="text-black mx-auto px-4 py-8">
                     <div className="text-center py-20">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-                        <p className="mt-4 text-gray-600">Memuat artikel...</p>
+                        <motion.div
+                            className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"
+                            animate={{ rotate: 360 }}
+                            transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                        />
+                        <motion.p
+                            className="mt-4 text-gray-600"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 0.3 }}
+                        >
+                            Memuat artikel...
+                        </motion.p>
                     </div>
                 </div>
-            </div>
+            </motion.div>
         );
     }
 
     return (
-        <div className="bg-amber-50 min-h-screen">
+        <motion.div
+            className="bg-amber-50 min-h-screen"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.8 }}
+        >
             <div className="text-black mx-auto px-4 py-8">
-                <h1 className="text-3xl font-bold mb-6">Artikel Terbaru</h1>
+                {/* Header */}
+                <motion.h1
+                    ref={headerRef}
+                    className="text-3xl font-bold mb-6"
+                    variants={fadeInUp}
+                    initial="hidden"
+                    animate={headerInView ? "visible" : "hidden"}
+                >
+                    Artikel Terbaru
+                </motion.h1>
+
                 {/* Filter Kategori */}
-                <div className="mb-8">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                <motion.div
+                    ref={filterRef}
+                    className="mb-8"
+                    variants={filterVariants}
+                    initial="hidden"
+                    animate={filterInView ? "visible" : "hidden"}
+                >
+                    <motion.label
+                        className="block text-sm font-medium text-gray-700 mb-2"
+                        variants={fadeInLeft}
+                    >
                         Filter berdasarkan kategori:
-                    </label>
-                    <select
+                    </motion.label>
+                    <motion.select
                         value={selectedCategory}
                         onChange={(e) => handleCategoryChange(e.target.value)}
-                        className="block w-full md:w-64 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                        className="block w-full md:w-64 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
+                        variants={fadeInLeft}
+                        whileFocus={{ scale: 1.02 }}
+                        whileHover={{ borderColor: "#3b82f6" }}
                     >
                         <option value="">Semua Kategori</option>
                         {categories.map((category) => (
@@ -218,122 +328,209 @@ export default function Home() {
                                 {category}
                             </option>
                         ))}
-                    </select>
-                </div>
+                    </motion.select>
+                </motion.div>
 
                 {/* Tampilkan info filter aktif */}
-                {selectedCategory && (
-                    <div className="mb-4 p-3 bg-blue-100 rounded-lg">
-                        <p className="text-blue-800">
-                            Menampilkan artikel untuk kategori: <strong>{selectedCategory}</strong>
-                            <button
-                                onClick={() => handleCategoryChange('')}
-                                className="ml-2 text-blue-600 hover:text-blue-800 underline"
-                            >
-                                Hapus filter
-                            </button>
-                        </p>
-                    </div>
-                )}
+                <AnimatePresence>
+                    {selectedCategory && (
+                        <motion.div
+                            className="mb-4 p-3 bg-blue-100 rounded-lg"
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            exit={{ opacity: 0, height: 0 }}
+                            transition={{ duration: 0.3 }}
+                        >
+                            <p className="text-blue-800">
+                                Menampilkan artikel untuk kategori: <strong>{selectedCategory}</strong>
+                                <motion.button
+                                    onClick={() => handleCategoryChange('')}
+                                    className="ml-2 text-blue-600 hover:text-blue-800 underline"
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                >
+                                    Hapus filter
+                                </motion.button>
+                            </p>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
 
                 {articles.length === 0 ? (
-                    <div className="text-center py-10">
+                    <motion.div
+                        className="text-center py-10"
+                        variants={fadeInUp}
+                        initial="hidden"
+                        animate="visible"
+                    >
                         <p className="text-gray-500 text-lg">
                             {selectedCategory
                                 ? `Tidak ada artikel untuk kategori "${selectedCategory}".`
                                 : 'Belum ada artikel yang dipublikasikan.'
                             }
                         </p>
-                    </div>
+                    </motion.div>
                 ) : (
                     <>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {articles.map((article) => {
-                                const imageSrc = extractFirstImageSrc(article.content);
+                        {/* Articles Grid */}
+                        <motion.div
+                            ref={articlesRef}
+                            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+                            variants={staggerContainer}
+                            initial="hidden"
+                            animate={articlesInView ? "visible" : "hidden"}
+                        >
+                            <AnimatePresence mode="wait">
+                                {articles.map((article, index) => {
+                                    const imageSrc = extractFirstImageSrc(article.content);
 
-                                return (
-                                    <div key={article.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-                                        <div className="h-48 relative">
-                                            {imageSrc ? (
-                                                <img
-                                                    src={imageSrc}
-                                                    alt={article.title}
-                                                    className="w-full h-full object-cover rounded-md"
-                                                />
-                                            ) : (
-                                                <div className="w-full h-full flex items-center justify-center bg-gray-200">
-                                                    <span className="text-gray-400">Tidak ada gambar</span>
-                                                </div>
-                                            )}
-
-                                            {article.category && (
-                                                <span className="absolute top-2 right-2 bg-yellow-500 text-white text-xs font-bold px-2 py-1 rounded">
-                                                    {article.category}
-                                                </span>
-                                            )}
-                                        </div>
-
-                                        <div className="p-4">
-                                            <Link href={`/artikel/${article.id}`}>
-                                                <h2 className="text-xl font-bold mb-2 hover:text-blue-500 transition line-clamp-2">
-                                                    {article.title}
-                                                </h2>
-                                            </Link>
-
-                                            <div className="text-gray-500 text-sm mb-3">
-                                                <span>{article.author}</span>
-                                                <span className="mx-2">•</span>
-                                                <span>{formatDate(article.createdAt)}</span>
-                                            </div>
-
-                                            <div className="text-gray-600 mb-4">
-                                                {truncateContent(article.content)}
-                                            </div>
-
-                                            <Link
-                                                href={`/artikel/${article.id}`}
-                                                className="text-blue-600 hover:text-blue-800 font-medium inline-flex items-center"
+                                    return (
+                                        <motion.div
+                                            key={article.id}
+                                            className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
+                                            variants={cardVariants}
+                                            whileHover={{
+                                                y: -8,
+                                                boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1)",
+                                                transition: { duration: 0.3 }
+                                            }}
+                                            whileTap={{ scale: 0.98 }}
+                                            layout
+                                        >
+                                            <motion.div
+                                                className="h-48 relative overflow-hidden"
+                                                whileHover={{ scale: 1.05 }}
+                                                transition={{ duration: 0.3 }}
                                             >
-                                                Baca selengkapnya
-                                                <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                                                </svg>
-                                            </Link>
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
+                                                {imageSrc ? (
+                                                    <img
+                                                        src={imageSrc}
+                                                        alt={article.title}
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center bg-gray-200">
+                                                        <span className="text-gray-400">Tidak ada gambar</span>
+                                                    </div>
+                                                )}
+
+                                                {article.category && (
+                                                    <motion.span
+                                                        className="absolute top-2 right-2 bg-yellow-500 text-white text-xs font-bold px-2 py-1 rounded"
+                                                        initial={{ scale: 0 }}
+                                                        animate={{ scale: 1 }}
+                                                        transition={{ delay: 0.5 }}
+                                                        whileHover={{ scale: 1.1 }}
+                                                    >
+                                                        {article.category}
+                                                    </motion.span>
+                                                )}
+                                            </motion.div>
+
+                                            <div className="p-4">
+                                                <Link href={`/artikel/${article.id}`}>
+                                                    <motion.h2
+                                                        className="text-xl font-bold mb-2 hover:text-blue-500 transition line-clamp-2"
+                                                        whileHover={{ x: 5 }}
+                                                        transition={{ duration: 0.2 }}
+                                                    >
+                                                        {article.title}
+                                                    </motion.h2>
+                                                </Link>
+
+                                                <motion.div
+                                                    className="text-gray-500 text-sm mb-3"
+                                                    initial={{ opacity: 0 }}
+                                                    animate={{ opacity: 1 }}
+                                                    transition={{ delay: 0.3 }}
+                                                >
+                                                    <span>{article.author}</span>
+                                                    <span className="mx-2">•</span>
+                                                    <span>{formatDate(article.createdAt)}</span>
+                                                </motion.div>
+
+                                                <motion.div
+                                                    className="text-gray-600 mb-4"
+                                                    initial={{ opacity: 0 }}
+                                                    animate={{ opacity: 1 }}
+                                                    transition={{ delay: 0.4 }}
+                                                >
+                                                    {truncateContent(article.content)}
+                                                </motion.div>
+
+                                                <Link href={`/artikel/${article.id}`}>
+                                                    <motion.div
+                                                        className="text-blue-600 hover:text-blue-800 font-medium inline-flex items-center"
+                                                        whileHover={{ x: 5 }}
+                                                        transition={{ duration: 0.2 }}
+                                                    >
+                                                        Baca selengkapnya
+                                                        <motion.svg
+                                                            className="w-4 h-4 ml-1"
+                                                            fill="none"
+                                                            stroke="currentColor"
+                                                            viewBox="0 0 24 24"
+                                                            whileHover={{ x: 3 }}
+                                                            transition={{ duration: 0.2 }}
+                                                        >
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                                        </motion.svg>
+                                                    </motion.div>
+                                                </Link>
+                                            </div>
+                                        </motion.div>
+                                    );
+                                })}
+                            </AnimatePresence>
+                        </motion.div>
 
                         {/* Load More Button */}
                         {hasMore && (
-                            <div className="text-center mt-8">
-                                <button
+                            <motion.div
+                                ref={loadMoreRef}
+                                className="text-center mt-8"
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.5 }}
+                            >
+                                <motion.button
                                     onClick={handleLoadMore}
                                     disabled={loadingMore}
                                     className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-bold py-3 px-6 rounded-lg transition-colors"
+                                    whileHover={{ scale: 1.05 }}
+                                    whileTap={{ scale: 0.95 }}
+                                    animate={loadingMore ? { opacity: 0.7 } : { opacity: 1 }}
                                 >
                                     {loadingMore ? (
                                         <span className="flex items-center justify-center">
-                                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                                            <motion.div
+                                                className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"
+                                                animate={{ rotate: 360 }}
+                                                transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                                            />
                                             Memuat...
                                         </span>
                                     ) : (
                                         'Muat Artikel Lainnya'
                                     )}
-                                </button>
-                            </div>
+                                </motion.button>
+                            </motion.div>
                         )}
 
-                        {/* Info total artikel yang ditampilkan */}
-                        <div className="text-center mt-4 text-gray-500 text-sm">
+                        {/* Info total artikel */}
+                        <motion.div
+                            className="text-center mt-4 text-gray-500 text-sm"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 0.8 }}
+                        >
                             Menampilkan {articles.length} artikel
                             {selectedCategory && ` untuk kategori "${selectedCategory}"`}
                             {!hasMore && articles.length > ARTICLES_PER_PAGE && ' (semua artikel telah dimuat)'}
-                        </div>
+                        </motion.div>
                     </>
                 )}
             </div>
-        </div>
+        </motion.div>
     );
 }

@@ -8,11 +8,61 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination, Autoplay } from 'swiper/modules';
 import { db } from './api/lib/firebaseConfig';
 import { collection, getDocs, orderBy, query, where, limit } from 'firebase/firestore';
+import { motion } from 'framer-motion';
+import { useInView } from 'react-intersection-observer';
 
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 import Link from "next/link";
+
+// Animation variants
+const fadeInUp = {
+  hidden: { opacity: 0, y: 60 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.6, ease: "easeOut" }
+  }
+};
+
+const fadeInLeft = {
+  hidden: { opacity: 0, x: -60 },
+  visible: {
+    opacity: 1,
+    x: 0,
+    transition: { duration: 0.6, ease: "easeOut" }
+  }
+};
+
+const fadeInRight = {
+  hidden: { opacity: 0, x: 60 },
+  visible: {
+    opacity: 1,
+    x: 0,
+    transition: { duration: 0.6, ease: "easeOut" }
+  }
+};
+
+const staggerContainer = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.2,
+      delayChildren: 0.1
+    }
+  }
+};
+
+const scaleIn = {
+  hidden: { opacity: 0, scale: 0.8 },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    transition: { duration: 0.5, ease: "easeOut" }
+  }
+};
 
 function formatDate(timestamp) {
   if (!timestamp) return '-';
@@ -66,6 +116,16 @@ export default function HomePage() {
   const [featuredArticles, setFeaturedArticles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // Intersection Observer hooks for different sections
+  const [heroRef, heroInView] = useInView({ threshold: 0.3, triggerOnce: true });
+  const [newsRef, newsInView] = useInView({ threshold: 0.2, triggerOnce: true });
+  const [profileRef, profileInView] = useInView({ threshold: 0.2, triggerOnce: true });
+  const [visionRef, visionInView] = useInView({ threshold: 0.2, triggerOnce: true });
+  const [facilitiesRef, facilitiesInView] = useInView({ threshold: 0.2, triggerOnce: true });
+  const [principalRef, principalInView] = useInView({ threshold: 0.2, triggerOnce: true });
+  const [testimoniRef, testimoniInView] = useInView({ threshold: 0.2, triggerOnce: true });
+  const [contactRef, contactInView] = useInView({ threshold: 0.2, triggerOnce: true });
 
   const GoogleMapEmbed = () => (
     <div className="w-full h-64">
@@ -180,134 +240,221 @@ export default function HomePage() {
   const renderArticleSection = () => {
     if (loading) {
       return (
-        <div className="flex items-center justify-center py-20">
+        <motion.div
+          className="flex items-center justify-center py-20"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5 }}
+        >
           <div className="text-center">
-            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-gray-900 mx-auto"></div>
+            <motion.div
+              className="animate-spin rounded-full h-16 w-16 border-b-2 border-gray-900 mx-auto"
+              animate={{ rotate: 360 }}
+              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+            ></motion.div>
             <p className="mt-4 text-gray-600">Memuat artikel...</p>
           </div>
-        </div>
+        </motion.div>
       );
     }
 
     if (error) {
       return (
-        <div className="flex items-center justify-center py-20">
+        <motion.div
+          className="flex items-center justify-center py-20"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+        >
           <div className="text-center">
             <p className="text-red-600 mb-4">{error}</p>
             <button
               onClick={getFeaturedArticles}
-              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors duration-300"
             >
               Coba Lagi
             </button>
           </div>
-        </div>
+        </motion.div>
       );
     }
 
     if (featuredArticles.length === 0) {
       return (
-        <div className="flex items-center justify-center py-20">
+        <motion.div
+          className="flex items-center justify-center py-20"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+        >
           <p className="text-gray-600">Belum ada artikel yang tersedia.</p>
-        </div>
+        </motion.div>
       );
     }
 
     return (
-      <div className="space-y-12">
+      <motion.div
+        className="space-y-12"
+        initial={{ opacity: 1 }} // Ubah dari 0 ke 1
+        animate={{ opacity: 1 }}  // Pastikan selalu terlihat
+        transition={{ duration: 0.6 }}
+      >
         {featuredArticles.map((article, index) => {
           const isImageLeft = index % 2 === 0;
           return (
-            <div
+            <motion.div
               key={article.id}
-              className={`flex flex-col md:flex-row items-center gap-8 ${isImageLeft ? '' : 'md:flex-row-reverse'
-                }`}
+              className={`flex flex-col md:flex-row items-center gap-8 ${isImageLeft ? '' : 'md:flex-row-reverse'}`}
+              initial={{ opacity: 0, y: 50 }}
+              animate={newsInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
+              transition={{ duration: 0.6, delay: index * 0.1 }}
             >
               {/* Gambar */}
-              <div className="md:w-1/2 w-full h-64 relative">
+              <motion.div
+                className="md:w-1/2 w-full h-64 relative"
+                initial={{ opacity: 0, x: isImageLeft ? -50 : 50 }}
+                animate={newsInView ? { opacity: 1, x: 0 } : { opacity: 0, x: isImageLeft ? -50 : 50 }}
+                transition={{ duration: 0.6, delay: index * 0.1 + 0.2 }}
+                whileHover={{ scale: 1.02 }}
+              >
                 <img
                   src={extractFirstImageSrc(article.content) || '/logo_sekolah.jpg'}
                   alt={article.title || 'Article image'}
                   className="object-cover rounded-lg shadow w-full h-full"
                 />
-              </div>
+              </motion.div>
 
               {/* Teks */}
-              <div className="md:w-1/2 w-full space-y-4 text-justify">
+              <motion.div
+                className="md:w-1/2 w-full space-y-4 text-justify"
+                initial={{ opacity: 0, x: isImageLeft ? 50 : -50 }}
+                animate={newsInView ? { opacity: 1, x: 0 } : { opacity: 0, x: isImageLeft ? 50 : -50 }}
+                transition={{ duration: 0.6, delay: index * 0.1 + 0.3 }}
+              >
                 <h2 className="text-2xl font-bold">{article.title || 'Untitled'}</h2>
                 <p className="text-sm text-gray-500">{formatDate(article.createdAt)}</p>
                 <p className="text-gray-700">{truncateContent(article.content)}</p>
                 <Link
                   href={`/artikel/${article.id}`}
-                  className="inline-block text-blue-500 hover:underline"
+                  className="inline-block text-blue-500 hover:underline transition-colors duration-300"
                 >
                   Baca Selengkapnya
                 </Link>
-              </div>
-            </div>
+              </motion.div>
+            </motion.div>
           );
         })}
-      </div>
+      </motion.div>
     );
   };
 
   const SwiperCarousel = ({ images, title }) => (
-    <div className="relative w-full mx-auto group">
+    <motion.div
+      className="relative w-full mx-auto group flex flex-col items"
+      variants={scaleIn}
+      whileHover={{ y: -10 }}
+      transition={{ duration: 0.3 }}
+    >
       <h2 className="text-center text-2xl font-bold my-4">{title}</h2>
-      <Swiper
-        modules={[Navigation, Pagination, Autoplay]}
-        spaceBetween={30}
-        slidesPerView={1}
-        navigation={{
-          nextEl: `.swiper-button-next-${title.toLowerCase().replace(' ', '-')}`,
-          prevEl: `.swiper-button-prev-${title.toLowerCase().replace(' ', '-')}`,
-        }}
-        pagination={{
-          clickable: true,
-          el: `.swiper-pagination-${title.toLowerCase().replace(' ', '-')}`,
-        }}
-        autoplay={{
-          delay: 3000,
-          disableOnInteraction: false,
-        }}
-        loop={true}
-        className="w-64 h-auto rounded-lg"
-      >
-        {images.map((image) => (
-          <SwiperSlide key={image.id}>
-            <div className="relative w-64 h-64">
-              <Image
-                src={image.src}
-                alt={image.name}
-                fill
-                className="object-cover rounded-lg"
-                onError={(e) => {
-                  e.target.style.display = 'none';
-                }}
-              />
-            </div>
-            <h3 className="text-center text-lg font-semibold mt-2">{image.name}</h3>
-          </SwiperSlide>
-        ))}
+      <div className="relative w-64 mx-auto flex flex-col items-center">
+        <Swiper
+          modules={[Navigation, Pagination, Autoplay]}
+          spaceBetween={30}
+          slidesPerView={1}
+          navigation={{
+            nextEl: `.swiper-button-next-${title.toLowerCase().replace(' ', '-')}`,
+            prevEl: `.swiper-button-prev-${title.toLowerCase().replace(' ', '-')}`,
+          }}
+          pagination={{
+            clickable: true,
+            el: `.swiper-pagination-${title.toLowerCase().replace(' ', '-')}`,
+          }}
+          autoplay={{
+            delay: 3000,
+            disableOnInteraction: false,
+          }}
+          loop={true}
+          className="w-full h-auto rounded-lg"
+        >
+          {images.map((image) => (
+            <SwiperSlide key={image.id}>
+              <div className="relative w-full h-64">
+                <Image
+                  src={image.src}
+                  alt={image.name}
+                  fill
+                  className="object-cover rounded-lg"
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                  }}
+                />
+              </div>
+              <h3 className="text-center text-lg font-semibold mt-2">{image.name}</h3>
+            </SwiperSlide>
+          ))}
+        </Swiper>
 
-        {/* Custom Navigation Buttons */}
-        <button className={`swiper-button-prev-${title.toLowerCase().replace(' ', '-')} !hidden group-hover:!flex !w-10 !h-10 !bg-black/30 hover:!bg-black/50 !backdrop-blur-sm rounded-full !text-white transition-all duration-300`}>
+        {/* Left Navigation Button */}
+        <button
+          className={`swiper-button-prev-${title.toLowerCase().replace(' ', '-')} 
+          absolute left-0 top-32 transform -translate-y-1/2 -translate-x-1/2 z-20
+          w-12 h-12 bg-white/90 hover:bg-white backdrop-blur-sm 
+          rounded-full text-gray-800 transition-all duration-300
+          flex items-center justify-center
+          opacity-0 group-hover:opacity-100
+          shadow-lg hover:shadow-xl border border-gray-200`}
+        >
+          <svg
+            className="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
           <span className="sr-only">Previous</span>
         </button>
-        <button className={`swiper-button-next-${title.toLowerCase().replace(' ', '-')} !hidden group-hover:!flex !w-10 !h-10 !bg-black/30 hover:!bg-black/50 !backdrop-blur-sm rounded-full !text-white transition-all duration-300`}>
+
+        {/* Right Navigation Button */}
+        <button
+          className={`swiper-button-next-${title.toLowerCase().replace(' ', '-')} 
+          absolute right-0 top-32 transform -translate-y-1/2 translate-x-1/2 z-20
+          w-12 h-12 bg-white/90 hover:bg-white backdrop-blur-sm 
+          rounded-full text-gray-800 transition-all duration-300
+          flex items-center justify-center
+          opacity-0 group-hover:opacity-100
+          shadow-lg hover:shadow-xl border border-gray-200`}
+        >
+          <svg
+            className="w-6 h-6"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
           <span className="sr-only">Next</span>
         </button>
 
-        {/* Custom Pagination Dots */}
-        <div className={`swiper-pagination-${title.toLowerCase().replace(' ', '-')} !bottom-4`}></div>
-      </Swiper>
-    </div>
+        {/* Pagination Dots */}
+        <div className={`swiper-pagination-${title.toLowerCase().replace(' ', '-')}` +
+          " mt-4 flex justify-center"}>
+        </div>
+      </div>
+    </motion.div>
   );
 
   return (
     <>
       {/* Hero Section */}
-      <section id="Home" className="flex flex-col relative items-center justify-center">
+      <motion.section
+        id="Home"
+        className="flex flex-col relative items-center justify-center"
+        ref={heroRef}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: heroInView ? 1 : 0 }}
+        transition={{ duration: 1 }}
+      >
         <div className="relative w-full h-screen">
           <Image
             src="/gambar_sekolah1.JPG"
@@ -317,8 +464,17 @@ export default function HomePage() {
             priority
           />
           <div className='absolute inset-0 flex flex-col items-center justify-center gap-4 bg-black/20'>
-            <div className="flex items-center gap-2 justify-center">
-              <div className="relative w-16 h-16 md:w-20 md:h-20">
+            <motion.div
+              className="flex items-center gap-2 justify-center"
+              initial={{ y: -50, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ duration: 0.8, delay: 0.2 }}
+            >
+              <motion.div
+                className="relative w-16 h-16 md:w-20 md:h-20"
+                whileHover={{ scale: 1.1, rotate: 5 }}
+                transition={{ duration: 0.3 }}
+              >
                 <Image
                   src="/yayasan.png"
                   alt="Logo Yayasan"
@@ -326,8 +482,12 @@ export default function HomePage() {
                   className="object-contain"
                   priority
                 />
-              </div>
-              <div className="relative w-14 h-14 md:w-18 md:h-18">
+              </motion.div>
+              <motion.div
+                className="relative w-14 h-14 md:w-18 md:h-18"
+                whileHover={{ scale: 1.1, rotate: -5 }}
+                transition={{ duration: 0.3 }}
+              >
                 <Image
                   src="/sekolah.png"
                   alt="Logo Sekolah"
@@ -335,33 +495,59 @@ export default function HomePage() {
                   className="object-contain"
                   priority
                 />
-              </div>
-              <h1 className="text-2xl md:text-4xl lg:text-6xl font-bold text-white text-center">
+              </motion.div>
+              <motion.h1
+                className="text-2xl md:text-4xl lg:text-6xl font-bold text-white text-center"
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ duration: 0.6, delay: 0.4 }}
+              >
                 SMA PGRI 1 GOMBONG
-              </h1>
-            </div>
-            <p className="text-lg md:text-2xl lg:text-3xl font-bold text-white text-center">
+              </motion.h1>
+            </motion.div>
+            <motion.p
+              className="text-lg md:text-2xl lg:text-3xl font-bold text-white text-center"
+              initial={{ y: 50, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ duration: 0.8, delay: 0.6 }}
+            >
               Terakreditasi A (Unggul)
-            </p>
+            </motion.p>
+          </div>
+        </div>
+      </motion.section>
+
+      {/* News Section */}
+      <section id="Berita" className="bg-amber-50 py-16 text-black scroll-mt-20" ref={newsRef}>
+        <div className="container mx-auto px-4">
+          <motion.h1
+            className="text-3xl md:text-4xl lg:text-5xl font-bold text-center mb-12"
+            variants={fadeInUp}
+            initial="hidden"
+            animate={newsInView ? "visible" : "hidden"}
+          >
+            Berita Terbaru
+          </motion.h1>
+          <div className="min-h-[400px]">
+            {renderArticleSection()}
           </div>
         </div>
       </section>
 
-      {/* News Section */}
-      <section id="Berita" className="bg-amber-50 py-16 text-black scroll-mt-20">
-        <div className="container mx-auto px-4">
-          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-center mb-12">
-            Berita Terbaru
-          </h1>
-          {renderArticleSection()}
-        </div>
-      </section>
-
       {/* Profile Section */}
-      <section id="profile" className="bg-amber-50 py-16 text-black flex flex-col md:flex-row gap-8 scroll-mt-20">
+      <section id="profile" className="bg-amber-50 py-16 text-black flex flex-col md:flex-row gap-8 scroll-mt-20" ref={profileRef}>
         <div className="container mx-auto px-4 flex flex-col md:flex-row items-center gap-8">
-          <div className="md:w-1/3 flex justify-center">
-            <div className="relative w-64 h-64">
+          <motion.div
+            className="md:w-1/3 flex justify-center"
+            variants={fadeInLeft}
+            initial="hidden"
+            animate={profileInView ? "visible" : "hidden"}
+          >
+            <motion.div
+              className="relative w-64 h-64 lg:w-80 lg:h-80"
+              whileHover={{ scale: 1.05, rotate: 2 }}
+              transition={{ duration: 0.3 }}
+            >
               <Image
                 src="/sekolah.png"
                 alt="Logo Sekolah"
@@ -369,9 +555,14 @@ export default function HomePage() {
                 className="object-contain"
                 priority
               />
-            </div>
-          </div>
-          <div className="md:w-2/3">
+            </motion.div>
+          </motion.div>
+          <motion.div
+            className="md:w-2/3"
+            variants={fadeInRight}
+            initial="hidden"
+            animate={profileInView ? "visible" : "hidden"}
+          >
             <h1 className="text-center md:text-left text-3xl font-bold mb-6">Profil Sekolah</h1>
             <div className="text-lg leading-relaxed text-justify space-y-4">
               <p>
@@ -381,19 +572,34 @@ export default function HomePage() {
                 Dengan akreditasi A (Unggul), sekolah ini telah melahirkan banyak alumni sukses di bidang militer, industri, dan luar negeri. Kepala sekolah pertama adalah Manginar, SM.BA yang menjabat dari tahun 1981 hingga 2006. SMA PGRI 1 Gombong berkomitmen mencetak generasi yang berkarakter Pancasila, unggul, terampil, dan berbudaya.
               </p>
             </div>
-          </div>
+          </motion.div>
         </div>
       </section>
 
       {/* Vision Mission Section */}
-      <section id="VISI MISI" className="bg-amber-50 py-16 text-black scroll-mt-20">
+      <section id="VISI MISI" className="bg-amber-50 py-16 text-black scroll-mt-20" ref={visionRef}>
         <div className="container mx-auto px-4">
-          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-center mb-12">
+          <motion.h1
+            className="text-3xl md:text-4xl lg:text-5xl font-bold text-center mb-12"
+            variants={fadeInUp}
+            initial="hidden"
+            animate={visionInView ? "visible" : "hidden"}
+          >
             Visi Misi dan Tujuan Sekolah
-          </h1>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          </motion.h1>
+          <motion.div
+            className="grid grid-cols-1 lg:grid-cols-2 gap-8"
+            variants={staggerContainer}
+            initial="hidden"
+            animate={visionInView ? "visible" : "hidden"}
+          >
             {/* Vision and Mission */}
-            <div className="bg-white shadow-lg rounded-lg p-6">
+            <motion.div
+              className="bg-white shadow-lg rounded-lg p-6"
+              variants={fadeInLeft}
+              whileHover={{ y: -5, boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1)" }}
+              transition={{ duration: 0.3 }}
+            >
               <h3 className="text-2xl font-bold mb-4 text-center">Visi</h3>
               <p className="text-gray-700 text-lg mb-6 text-justify">
                 Menjadikan generasi yang berkarakter Pancasila, Unggul, Terampil dan Berbudaya
@@ -408,10 +614,15 @@ export default function HomePage() {
                 <li>Peningkatan hubungan kemitraan internal dan eksternal.</li>
                 <li>Peningkatan lingkungan sekolah yang kondusif dan berwawasan wiyatamandala.</li>
               </ul>
-            </div>
+            </motion.div>
 
             {/* School Objectives */}
-            <div className="bg-white shadow-lg rounded-lg p-6">
+            <motion.div
+              className="bg-white shadow-lg rounded-lg p-6"
+              variants={fadeInRight}
+              whileHover={{ y: -5, boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1)" }}
+              transition={{ duration: 0.3 }}
+            >
               <h3 className="text-2xl font-bold mb-4 text-center">Tujuan Sekolah</h3>
               <ul className="text-gray-700 text-base space-y-3 list-disc pl-6">
                 <li>Mengembangkan kegiatan pembelajaran yang berorientasi pada pengembangan dimensi Profil Pelajar Pancasila.</li>
@@ -424,40 +635,65 @@ export default function HomePage() {
                 <li>Mengembangkan dan meningkatkan partisipasi seluruh warga sekolah, masyarakat dan pihak-pihak lain dengan dilandasi sikap tanggung jawab dan dedikasi yang tinggi.</li>
                 <li>Terwujudnya lingkungan sekolah yang sehat, bersih, nyaman, ramah dan menyenangkan.</li>
               </ul>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         </div>
       </section>
 
       {/* Facilities and Extracurricular Section */}
-      <section id="ekstrakurikuler" className="bg-amber-50 py-16 scroll-mt-20">
+      <section id="ekstrakurikuler" className="bg-amber-50 py-16 scroll-mt-20" ref={facilitiesRef}>
         <div className="container mx-auto px-4">
-          <h1 className="text-center text-3xl md:text-4xl font-bold text-black mb-12">
+          <motion.h1
+            className="text-center text-3xl md:text-4xl font-bold text-black mb-12"
+            variants={fadeInUp}
+            initial="hidden"
+            animate={facilitiesInView ? "visible" : "hidden"}
+          >
             Fasilitas dan Ekstrakurikuler
-          </h1>
-          <div className="flex flex-col lg:flex-row justify-center items-center gap-12 text-black">
+          </motion.h1>
+          <motion.div
+            className="flex flex-col lg:flex-row justify-center items-center gap-12 text-black"
+            variants={staggerContainer}
+            initial="hidden"
+            animate={facilitiesInView ? "visible" : "hidden"}
+          >
             <SwiperCarousel images={facilitiesImages} title="Fasilitas" />
             <SwiperCarousel images={extracurricularImages} title="Ekstrakurikuler" />
-          </div>
+          </motion.div>
         </div>
       </section>
 
       {/* Principal's Message Section */}
-      <section id="Sambutan" className="bg-gray-700 py-16 text-white scroll-mt-20">
+      <section id="Sambutan" className="bg-gray-700 py-16 text-white scroll-mt-20" ref={principalRef}>
         <div className="container mx-auto px-4">
-          <div className="flex flex-col lg:flex-row items-center gap-8">
-            <div className="lg:w-1/3 flex justify-center">
-              <div className="relative w-64 h-64">
+          <motion.div
+            className="flex flex-col lg:flex-row items-center gap-8"
+            variants={staggerContainer}
+            initial="hidden"
+            animate={principalInView ? "visible" : "hidden"}
+          >
+            <motion.div
+              className="lg:w-1/3 flex justify-center"
+              variants={fadeInLeft}
+            >
+              <motion.div
+                className="relative w-64 h-64 lg:w-80 lg:h-80"
+                whileHover={{ scale: 1.05 }}
+                transition={{ duration: 0.3 }}
+              >
                 <Image
-                  src="/sekolah.png"
-                  alt="Logo Sekolah"
+                  src="/kepala_sekolah.jpg"
+                  alt="Kepala Sekolah"
                   fill
-                  className="object-contain"
+                  className="object-contain rounded-lg"
                   priority
                 />
-              </div>
-            </div>
-            <div className="lg:w-2/3">
+              </motion.div>
+            </motion.div>
+            <motion.div
+              className="lg:w-2/3"
+              variants={fadeInRight}
+            >
               <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-6">
                 Kepala Sekolah SMA PGRI 1 Gombong
               </h1>
@@ -471,82 +707,138 @@ export default function HomePage() {
                 </p>
                 <p>Wassalamu'alaikum warahmatullahi wabarakatuh.</p>
               </div>
-              <Link
-                href="/sambutan"
-                className="inline-block py-3 px-6 bg-yellow-500 hover:bg-yellow-600 transition-colors duration-300 text-lg rounded-md text-white font-semibold shadow-md"
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
               >
-                Baca Selengkapnya
-              </Link>
-            </div>
-          </div>
+                <Link
+                  href="/sambutan"
+                  className="inline-block py-3 px-6 bg-yellow-500 hover:bg-yellow-600 transition-colors duration-300 text-lg rounded-md text-white font-semibold shadow-md"
+                >
+                  Baca Selengkapnya
+                </Link>
+              </motion.div>
+            </motion.div>
+          </motion.div>
         </div>
       </section>
 
       {/* Alumni Testimonials Section */}
-      <section id="Testimoni" className="py-16 bg-amber-50 text-black scroll-mt-20">
+      <section id="Testimoni" className="py-16 bg-amber-50 text-black scroll-mt-20" ref={testimoniRef}>
         <div className="container mx-auto px-4">
-          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-center mb-12">
+          <motion.h1
+            className="text-3xl md:text-4xl lg:text-5xl font-bold text-center mb-12"
+            variants={fadeInUp}
+            initial="hidden"
+            animate={testimoniInView ? "visible" : "hidden"}
+          >
             Testimoni Alumni
-          </h1>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <div className="text-center shadow-lg bg-white rounded-lg p-6">
-              <div className="relative w-32 h-32 mx-auto mb-4">
+          </motion.h1>
+          <motion.div
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+            variants={staggerContainer}
+            initial="hidden"
+            animate={testimoniInView ? "visible" : "hidden"}
+          >
+            <motion.div
+              className="text-center shadow-lg bg-white rounded-lg p-6"
+              variants={scaleIn}
+              whileHover={{ y: -10, boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1)" }}
+              transition={{ duration: 0.3 }}
+            >
+              <motion.div
+                className="relative w-32 h-32 mx-auto mb-4"
+                whileHover={{ scale: 1.1 }}
+                transition={{ duration: 0.3 }}
+              >
                 <Image
                   src="/alumni/alumni1.jpg"
                   fill
                   alt="Suharno"
                   className="rounded-full object-cover"
                 />
-              </div>
+              </motion.div>
               <h3 className="text-xl font-bold mb-4">Suharno</h3>
               <p className="text-gray-600 text-base">
                 Lulus SMA PGRI 1 Gombong, lulus 2014. Lanjut pendidikan militer 2015. Pada tahun 2016 penempatan dinas di sekolah calon perwira angkatan darat di bandung sampai sekarang.
               </p>
-            </div>
+            </motion.div>
 
-            <div className="text-center shadow-lg bg-white rounded-lg p-6">
-              <div className="relative w-32 h-32 mx-auto mb-4">
+            <motion.div
+              className="text-center shadow-lg bg-white rounded-lg p-6"
+              variants={scaleIn}
+              whileHover={{ y: -10, boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1)" }}
+              transition={{ duration: 0.3 }}
+            >
+              <motion.div
+                className="relative w-32 h-32 mx-auto mb-4"
+                whileHover={{ scale: 1.1 }}
+                transition={{ duration: 0.3 }}
+              >
                 <Image
                   src="/alumni/alumni2.jpg"
                   fill
                   alt="Staff Administrasi"
                   className="rounded-full object-cover"
                 />
-              </div>
+              </motion.div>
               <h3 className="text-xl font-bold mb-4">Staff Administrasi</h3>
               <p className="text-gray-600 text-base">
                 Alumni SMA PGRI 1 GOMBONG bekerja di PT GAJAH TUNGGAL Tbk. SEBAGAI STAFF ADMINISTRASI
               </p>
-            </div>
+            </motion.div>
 
-            <div className="text-center shadow-lg bg-white rounded-lg p-6">
-              <div className="relative w-32 h-32 mx-auto mb-4">
+            <motion.div
+              className="text-center shadow-lg bg-white rounded-lg p-6"
+              variants={scaleIn}
+              whileHover={{ y: -10, boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1)" }}
+              transition={{ duration: 0.3 }}
+            >
+              <motion.div
+                className="relative w-32 h-32 mx-auto mb-4"
+                whileHover={{ scale: 1.1 }}
+                transition={{ duration: 0.3 }}
+              >
                 <Image
                   src="/alumni/alumni3.jpg"
                   fill
                   alt="Melina"
                   className="rounded-full object-cover"
                 />
-              </div>
+              </motion.div>
               <h3 className="text-xl font-bold mb-4">Melina</h3>
               <p className="text-gray-600 text-base">
                 Alumni SMA PGRI 1 GOMBONG tahun 2021. Saat ini saya bekerja di Jepang di PT Elna, perusahaan yang bergerak di bidang elektronik.
               </p>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         </div>
       </section>
 
       {/* Contact Section */}
-      <section className="bg-amber-50 py-16 text-black">
+      <section className="bg-amber-50 py-16 text-black" ref={contactRef}>
         <div className="container mx-auto px-4">
-          <div className="max-w-6xl mx-auto bg-white shadow-lg rounded-lg overflow-hidden">
+          <motion.div
+            className="max-w-6xl mx-auto bg-white shadow-lg rounded-lg overflow-hidden"
+            variants={fadeInUp}
+            initial="hidden"
+            animate={contactInView ? "visible" : "hidden"}
+            whileHover={{ y: -5 }}
+            transition={{ duration: 0.3 }}
+          >
             <div className="md:flex">
-              <div className="md:w-1/2 bg-yellow-500 text-white p-8">
+              <motion.div
+                className="md:w-1/2 bg-yellow-500 text-white p-8"
+                variants={fadeInLeft}
+              >
                 <h2 className="text-3xl font-bold mb-6">SMA PGRI 1 GOMBONG</h2>
 
                 <div className="space-y-6">
-                  <div className="flex items-start">
+                  <motion.div
+                    className="flex items-start"
+                    whileHover={{ x: 5 }}
+                    transition={{ duration: 0.2 }}
+                  >
                     <MapPin className="w-6 h-6 mr-4 mt-1 flex-shrink-0" />
                     <div>
                       <div className="font-bold text-lg mb-1">SMA PGRI 1 GOMBONG</div>
@@ -555,33 +847,47 @@ export default function HomePage() {
                         (Sebelah timur Terminal Bus Gombong atau Utara Pasar Wonokriyo Gombong)
                       </div>
                     </div>
-                  </div>
+                  </motion.div>
 
-                  <div className="flex items-center">
+                  <motion.div
+                    className="flex items-center"
+                    whileHover={{ x: 5 }}
+                    transition={{ duration: 0.2 }}
+                  >
                     <Phone className="w-6 h-6 mr-4" />
                     <span className="text-lg">0287-472426</span>
-                  </div>
+                  </motion.div>
 
-                  <div className="flex items-center">
+                  <motion.div
+                    className="flex items-center"
+                    whileHover={{ x: 5 }}
+                    transition={{ duration: 0.2 }}
+                  >
                     <Mail className="w-6 h-6 mr-4" />
                     <span className="text-lg">smapgri1gombongg@gmail.com</span>
-                  </div>
+                  </motion.div>
                 </div>
 
-                <div className="mt-8">
+                <motion.div
+                  className="mt-8"
+                  variants={scaleIn}
+                >
                   <GoogleMapEmbed />
-                </div>
-              </div>
+                </motion.div>
+              </motion.div>
 
-              <div className="md:w-1/2 p-8">
+              <motion.div
+                className="md:w-1/2 p-8"
+                variants={fadeInRight}
+              >
                 <FeedbackForm
                   serviceId={emailjsConfig.serviceId}
                   templateId={emailjsConfig.templateId}
                   publicKey={emailjsConfig.publicKey}
                 />
-              </div>
+              </motion.div>
             </div>
-          </div>
+          </motion.div>
         </div>
       </section>
     </>

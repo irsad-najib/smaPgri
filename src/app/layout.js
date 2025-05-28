@@ -24,13 +24,18 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <Navbar />
+      <head />
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
-        <Footer />
+        <div className="min-h-screen flex flex-col">
+          <Navbar />
+          <main className="flex-1">
+            {children}
+          </main>
+          <Footer />
+        </div>
       </body>
-    </html >
+    </html>
   );
 }
