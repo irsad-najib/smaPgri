@@ -14,17 +14,13 @@ export default function Footer() {
                     </a>
                     <a className='justify-center items-center mt-[1%] text-[5vw] md:text-xl'>Follow Our Instagram</a>
                 </ul>
-                <p className='pt-5 ml-4'>Copyright © 2025 Irsad Najib Eka Putra</p>
+                <p className='pt-5 ml-4'>Copyright © 2025 SMA PGRI 1 GOMBONG</p>
                 <p className='ml-4'>All rights reserved</p>
             </div>
 
             <div className="flex flex-col justify-center text-gray-300">
                 <h1 className="font-bold py-4 text-lg lg:text-2xl">About</h1>
-                <a>Help center</a>
-                <a>Terms and services</a>
-                <a>Legal</a>
-                <a>Privacy policy</a>
-                <a>Status</a>
+                <a>NPSN : 20304997</a>
             </div>
 
 
