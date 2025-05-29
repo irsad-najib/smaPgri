@@ -142,9 +142,9 @@ export default function HomePage() {
   );
 
   const emailjsConfig = {
-    serviceId: 'service_azx64n8',
-    templateId: 'template_gq2pg5p',
-    publicKey: 'NG7D69F5FkLzXpMsR'
+    serviceId: 'service_au54mza',
+    templateId: 'template_4eaeuj3',
+    publicKey: 'jQirhPbdL5lb7zst0'
   };
 
   // Initialize EmailJS
