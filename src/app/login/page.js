@@ -5,8 +5,7 @@ import { isLoggedIn, setLoggedIn } from "../utils/auth";
 
 // Define allowed users - in a real app, this would come from a secure API
 const ALLOWED_USERS = [
-    { email: "admin@example.com", password: "123456" },
-    { email: "user@example.com", password: "123456" }
+    { email: "smapgri1gombongg@gmail.com", password: "Kebumen998" }
 ];
 
 const LoginPage = () => {
