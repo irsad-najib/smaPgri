@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 
 export const metadata = {
   title: "SMA PGRI 1 GOMBONG",
-  description: "SMA PGRI 1 Gombong sekolah swasta terakreditasi A di Gombong, Kebumen. Info PPDB, fasilitas lengkap, ekstrakurikuler beragam. Mencetak alumni berprestasi sejak 1981",
+  description: "Website Resmi Terbaru SMA PGRI 1 Gombong. SMA PGRI 1 Gombong sekolah swasta terakreditasi A di Gombong, Kebumen. Info PPDB, fasilitas lengkap, ekstrakurikuler beragam. Mencetak alumni berprestasi sejak 1981",
   icons: {
     icon: "/sekolah.png",
   },
