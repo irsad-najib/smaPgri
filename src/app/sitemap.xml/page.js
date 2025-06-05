@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { initializeApp } from 'firebase/app';
 import { getFirestore, collection, getDocs } from 'firebase/firestore';
-import firebaseConfig from '@/app/api/lib/firebaseConfig';
+import firebaseConfig from '../api/lib/firebaseConfig';
 
 // Inisialisasi Firebase
 const app = initializeApp(firebaseConfig);
